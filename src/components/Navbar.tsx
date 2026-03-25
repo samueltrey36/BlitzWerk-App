@@ -23,7 +23,7 @@ export default function Navbar() {
         </div>
         <div className="hidden md:flex items-center gap-8">
           <a href="#benefits" className="text-sm font-medium text-slate-600 hover:text-brand transition-colors">Benefits</a>
-          <Link to="/become-helper" onClick={() => sessionStorage.setItem('intendedRole', 'Helper')} className="text-sm font-medium text-slate-600 hover:text-brand transition-colors">Become a Helper</Link>
+          <Link to="/create-account" onClick={() => { sessionStorage.setItem('intendedRole', 'Helper'); sessionStorage.setItem('flowReturnTo', '/become-helper'); }} className="text-sm font-medium text-slate-600 hover:text-brand transition-colors">Become a Helper</Link>
           <a href="#trust" className="text-sm font-medium text-slate-600 hover:text-brand transition-colors">Trust</a>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3">
@@ -48,10 +48,10 @@ export default function Navbar() {
             </div>
           ) : (
             <>
-              <Link to="/login" className="text-sm font-semibold text-brand px-2 sm:px-4 py-2 rounded-full hover:bg-brand/5 transition-colors whitespace-nowrap">
+              <Link to="/login" onClick={() => sessionStorage.removeItem('flowReturnTo')} className="text-sm font-semibold text-brand px-2 sm:px-4 py-2 rounded-full hover:bg-brand/5 transition-colors whitespace-nowrap">
                 Log In
               </Link>
-              <Link to="/create-account" className="bg-brand text-white text-sm font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-lg shadow-brand/20 hover:scale-105 transition-transform active:scale-95 inline-block whitespace-nowrap">
+              <Link to="/create-account" onClick={() => sessionStorage.removeItem('flowReturnTo')} className="bg-brand text-white text-sm font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-lg shadow-brand/20 hover:scale-105 transition-transform active:scale-95 inline-block whitespace-nowrap">
                 Create Account
               </Link>
             </>

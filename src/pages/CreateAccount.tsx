@@ -83,7 +83,14 @@ export default function CreateAccount() {
 
       // Navigate to respective dashboard after a tiny tick to show visual success state briefly 
       setTimeout(() => {
-        navigate(accountType === 'Customer' ? '/customer-dashboard' : '/helper-dashboard');
+        let targetRoute = accountType === 'Customer' ? '/customer-dashboard' : '/helper-dashboard';
+        const flowReturnTo = sessionStorage.getItem('flowReturnTo');
+        if (flowReturnTo) {
+          if (accountType === 'Customer' && flowReturnTo === '/get-help') targetRoute = flowReturnTo;
+          if (accountType === 'Helper' && flowReturnTo === '/become-helper') targetRoute = flowReturnTo;
+          sessionStorage.removeItem('flowReturnTo');
+        }
+        navigate(targetRoute, { replace: true });
       }, 800);
       
     }, 1000);

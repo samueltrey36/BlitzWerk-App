@@ -34,7 +34,13 @@ export default function Login() {
           // Verify 'backend' response generic email matching loosely
           if (parsedUser.email === email) {
             login(parsedUser); // Sync React context state
-            const targetRoute = parsedUser.accountType === 'Customer' ? '/customer-dashboard' : '/helper-dashboard';
+            let targetRoute = parsedUser.accountType === 'Customer' ? '/customer-dashboard' : '/helper-dashboard';
+            const flowReturnTo = sessionStorage.getItem('flowReturnTo');
+            if (flowReturnTo) {
+              if (parsedUser.accountType === 'Customer' && flowReturnTo === '/get-help') targetRoute = flowReturnTo;
+              if (parsedUser.accountType === 'Helper' && flowReturnTo === '/become-helper') targetRoute = flowReturnTo;
+              sessionStorage.removeItem('flowReturnTo');
+            }
             navigate(targetRoute, { replace: true });
             return;
           }
