@@ -80,10 +80,10 @@ export default function Comparison() {
               Don't wait hours for a tow truck. BlitzWerk connects you with nearby helpers in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-              <Link to="/get-help" className="bg-white text-brand text-xl font-bold px-10 py-5 rounded-2xl shadow-2xl hover:scale-105 transition-transform active:scale-95 inline-block text-center">
+              <Link to="/get-help" onClick={() => sessionStorage.setItem('intendedRole', 'Customer')} className="bg-white text-brand text-xl font-bold px-10 py-5 rounded-2xl shadow-2xl hover:scale-105 transition-transform active:scale-95 inline-block text-center">
                 Get Help Now
               </Link>
-              <Link to="/become-helper" className="bg-transparent text-white text-xl font-bold px-10 py-5 rounded-2xl border-2 border-white/20 hover:border-white hover:bg-white/10 transition-all active:scale-95 inline-block text-center">
+              <Link to="/become-helper" onClick={() => sessionStorage.setItem('intendedRole', 'Helper')} className="bg-transparent text-white text-xl font-bold px-10 py-5 rounded-2xl border-2 border-white/20 hover:border-white hover:bg-white/10 transition-all active:scale-95 inline-block text-center">
                 Become a Helper
               </Link>
             </div>

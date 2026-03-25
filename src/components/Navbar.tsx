@@ -23,7 +23,7 @@ export default function Navbar() {
         </div>
         <div className="hidden md:flex items-center gap-8">
           <a href="#benefits" className="text-sm font-medium text-slate-600 hover:text-brand transition-colors">Benefits</a>
-          <Link to="/become-helper" className="text-sm font-medium text-slate-600 hover:text-brand transition-colors">Become a Helper</Link>
+          <Link to="/become-helper" onClick={() => sessionStorage.setItem('intendedRole', 'Helper')} className="text-sm font-medium text-slate-600 hover:text-brand transition-colors">Become a Helper</Link>
           <a href="#trust" className="text-sm font-medium text-slate-600 hover:text-brand transition-colors">Trust</a>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-3">

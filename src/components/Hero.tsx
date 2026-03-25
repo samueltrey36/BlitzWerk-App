@@ -27,11 +27,11 @@ export default function Hero() {
               BlitzWerk connects you with nearby helpers for flat tires, jump starts, fuel delivery, and towing. Fast, reliable, and no membership required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link to="/get-help" className="bg-brand text-white text-lg font-bold px-8 py-5 rounded-2xl shadow-xl shadow-brand/30 hover:scale-105 transition-all active:scale-95 flex items-center justify-center gap-3 group">
+              <Link to="/get-help" onClick={() => sessionStorage.setItem('intendedRole', 'Customer')} className="bg-brand text-white text-lg font-bold px-8 py-5 rounded-2xl shadow-xl shadow-brand/30 hover:scale-105 transition-all active:scale-95 flex items-center justify-center gap-3 group">
                 Get Help Now
                 <Navigation className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link to="/become-helper" className="bg-white text-slate-900 text-lg font-bold px-8 py-5 rounded-2xl border-2 border-slate-200 hover:border-brand hover:text-brand transition-all active:scale-95 flex items-center justify-center gap-3">
+              <Link to="/become-helper" onClick={() => sessionStorage.setItem('intendedRole', 'Helper')} className="bg-white text-slate-900 text-lg font-bold px-8 py-5 rounded-2xl border-2 border-slate-200 hover:border-brand hover:text-brand transition-all active:scale-95 flex items-center justify-center gap-3">
                 Become a Helper
               </Link>
             </div>
