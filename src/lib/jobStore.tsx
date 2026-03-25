@@ -8,6 +8,7 @@ export interface JobState {
   location: string;
   eta: number;
   price: number;
+  helperLocation?: string;
 }
 
 const defaultState: JobState = {

@@ -43,13 +43,66 @@ export default function BecomeHelper() {
     }
   }, [state, job.status, resetJob]);
 
+  // Handle live helper location tracking
+  useEffect(() => {
+    let watchId: number;
+    if (state !== 'OFFLINE' && state !== 'JOB_COMPLETE') {
+      if ("geolocation" in navigator) {
+        if (!job.helperLocation) {
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+          updateJob({ helperLocation: "Fetching location..." });
+        }
+        watchId = navigator.geolocation.watchPosition(
+          (position) => {
+            const loc = `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+            updateJob({ helperLocation: loc });
+          },
+          (error) => {
+            console.error("Location tracking error:", error);
+            updateJob({ helperLocation: "Location unavailable" });
+          },
+          { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+        );
+      } else {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        updateJob({ helperLocation: "Geolocation not supported" });
+      }
+    } else {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      updateJob({ helperLocation: "" });
+    }
+    return () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
+  const calculateDistance = () => {
+    if (!job.location || !job.helperLocation) return null;
+    const [lat1, lon1] = job.location.split(',').map(Number);
+    const [lat2, lon2] = job.helperLocation.split(',').map(Number);
+    if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) return null;
+
+    const R = 3958.8; // miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const dist = R * c;
+    return dist < 0.1 ? "0.1" : dist.toFixed(1);
+  };
+
   const handleGoOnline = () => {
     if (job.status === 'searching') setState('INCOMING_REQUEST');
     else setState('SEARCHING');
   };
   
   const handleAccept = () => {
-    updateJob({ status: 'pending_confirmation', eta: 8, price: 45 });
+    const distStr = calculateDistance();
+    const estEta = distStr ? Math.max(1, Math.ceil(parseFloat(distStr) * 3)) : 8;
+    updateJob({ status: 'pending_confirmation', eta: estEta, price: 45 });
     setState('WAITING_CONFIRMATION');
   };
   
@@ -180,7 +233,7 @@ export default function BecomeHelper() {
                   </h2>
                   <div className="flex items-center text-gray-600 space-x-1.5 font-medium pt-1">
                     <MapPin className="w-4 h-4 text-brand opacity-50" />
-                    <span className="truncate max-w-[200px]">Customer nearby (~2 miles)</span>
+                    <span className="truncate max-w-[200px]">Customer nearby {calculateDistance() ? `(~${calculateDistance()} miles)` : ''}</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -250,7 +303,7 @@ export default function BecomeHelper() {
               </div>
               <div className="space-y-2">
                  <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Navigate to customer</h2>
-                 <p className="text-gray-600 font-medium">{job.location || '123 Main St, Springfield'} • 2.4 mi away</p>
+                 <p className="text-gray-600 font-medium">{job.location || '123 Main St, Springfield'} {calculateDistance() ? `• ${calculateDistance()} mi away` : ''}</p>
               </div>
               
               <div className="bg-green-50 rounded-2xl p-4 flex items-center justify-between border border-green-100 text-left">
