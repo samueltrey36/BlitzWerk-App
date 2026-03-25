@@ -13,6 +13,32 @@ export default function GetHelp() {
   const [locationStr, setLocationStr] = useState("Getting your location...");
   const [locationError, setLocationError] = useState("");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [cardNumber, setCardNumber] = useState("");
+  const [expDate, setExpDate] = useState("");
+  const [cvc, setCvc] = useState("");
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/\D/g, "");
+    if (val.length > 16) val = val.slice(0, 16);
+    const formatted = val.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+    setCardNumber(formatted);
+  };
+
+  const handleExpDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value.replace(/\D/g, "");
+    if (val.length > 4) val = val.slice(0, 4);
+    if (val.length >= 2) {
+      val = `${val.slice(0, 2)}/${val.slice(2)}`;
+    }
+    setExpDate(val);
+  };
+
+  const handleCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+    setCvc(val);
+  };
+
+  const isPaymentValid = cardNumber.length >= 19 && expDate.length === 5 && cvc.length >= 3;
 
   const eta = job.eta || 0;
   const price = job.price || 0;
@@ -327,17 +353,17 @@ export default function GetHelp() {
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Card Number</label>
                 <div className="flex items-center bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand transition-all">
                   <CreditCard className="w-5 h-5 text-slate-400 mr-2" />
-                  <input type="text" placeholder="0000 0000 0000 0000" className="bg-transparent w-full text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400" />
+                  <input type="text" placeholder="0000 0000 0000 0000" className="bg-transparent w-full text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400" value={cardNumber} onChange={handleCardNumberChange} />
                 </div>
               </div>
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Exp</label>
-                  <input type="text" placeholder="MM/YY" className="bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200 w-full text-sm font-medium text-slate-800 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all placeholder:text-slate-400" />
+                  <input type="text" placeholder="MM/YY" className="bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200 w-full text-sm font-medium text-slate-800 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all placeholder:text-slate-400" value={expDate} onChange={handleExpDateChange} />
                 </div>
                 <div className="flex-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">CVC</label>
-                  <input type="text" placeholder="123" className="bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200 w-full text-sm font-medium text-slate-800 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all placeholder:text-slate-400" />
+                  <input type="text" placeholder="123" className="bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200 w-full text-sm font-medium text-slate-800 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all placeholder:text-slate-400" value={cvc} onChange={handleCvcChange} />
                 </div>
               </div>
               
@@ -360,7 +386,7 @@ export default function GetHelp() {
                     updateJob({ status: 'confirmed' });
                   }, 1500);
                 }}
-                disabled={isProcessingPayment}
+                disabled={!isPaymentValid || isProcessingPayment}
                 className="w-full py-4 px-6 bg-brand text-white rounded-2xl font-bold text-lg shadow-lg shadow-brand/30 hover:shadow-brand/40 transition-all flex justify-center items-center disabled:opacity-75 disabled:cursor-not-allowed group relative overflow-hidden"
               >
                 {isProcessingPayment ? (
