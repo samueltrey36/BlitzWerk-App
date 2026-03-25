@@ -6,7 +6,7 @@ import { useJobStore } from "../lib/jobStore";
 export default function GetHelp() {
   const navigate = useNavigate();
   const { job, updateJob, resetJob } = useJobStore();
-  
+
   // Steps: 1: Issue, 2: Location, 3: Searching, 4: Match, 5: Payment, 6: Tracking, 7: Complete
   const [step, setStep] = useState(1);
   const [selectedIssue, setSelectedIssue] = useState<string>("");
@@ -108,7 +108,7 @@ export default function GetHelp() {
             <span className="text-sm font-medium text-slate-500">Step {step} of 7</span>
           </div>
           <div className="h-2 bg-slate-200 rounded-full w-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-brand rounded-full transition-all duration-500 ease-out"
               style={{ width: `${(step / 7) * 100}%` }}
             />
@@ -120,25 +120,25 @@ export default function GetHelp() {
           <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-xl font-semibold mb-6 text-slate-800">What's the issue?</h2>
             <div className="grid grid-cols-2 gap-4 mb-8">
-              <IssueCard 
-                icon={<Wrench />} title="Flat Tire" value="flat_tire" 
-                selected={selectedIssue === "flat_tire"} onClick={() => setSelectedIssue("flat_tire")} 
+              <IssueCard
+                icon={<Wrench />} title="Flat Tire" value="flat_tire"
+                selected={selectedIssue === "flat_tire"} onClick={() => setSelectedIssue("flat_tire")}
               />
-              <IssueCard 
-                icon={<Zap />} title="Jump Start" value="jump_start" 
-                selected={selectedIssue === "jump_start"} onClick={() => setSelectedIssue("jump_start")} 
+              <IssueCard
+                icon={<Zap />} title="Jump Start" value="jump_start"
+                selected={selectedIssue === "jump_start"} onClick={() => setSelectedIssue("jump_start")}
               />
-              <IssueCard 
-                icon={<Fuel />} title="Fuel Delivery" value="fuel_delivery" 
-                selected={selectedIssue === "fuel_delivery"} onClick={() => setSelectedIssue("fuel_delivery")} 
+              <IssueCard
+                icon={<Fuel />} title="Fuel Delivery" value="fuel_delivery"
+                selected={selectedIssue === "fuel_delivery"} onClick={() => setSelectedIssue("fuel_delivery")}
               />
-              <IssueCard 
-                icon={<Truck />} title="Towing" value="towing" 
-                selected={selectedIssue === "towing"} onClick={() => setSelectedIssue("towing")} 
+              <IssueCard
+                icon={<Truck />} title="Towing" value="towing"
+                selected={selectedIssue === "towing"} onClick={() => setSelectedIssue("towing")}
               />
             </div>
             <div className="mt-auto pt-6">
-              <button 
+              <button
                 disabled={!selectedIssue}
                 onClick={() => setStep(2)}
                 className="w-full py-4 px-6 bg-brand text-white rounded-2xl font-bold text-lg flex justify-between items-center shadow-lg shadow-brand/30 hover:shadow-brand/40 transition-all disabled:opacity-50 disabled:shadow-none"
@@ -154,7 +154,7 @@ export default function GetHelp() {
         {step === 2 && (
           <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-xl font-semibold mb-4 text-slate-800">Confirm Location</h2>
-            
+
             {/* Map Placeholder */}
             <div className="relative w-full h-64 bg-slate-200 rounded-2xl overflow-hidden mb-6 border-2 border-white shadow-md">
               <div className="absolute inset-0 opacity-20" style={{
@@ -186,7 +186,7 @@ export default function GetHelp() {
             </div>
 
             <div className="mt-8">
-              <button 
+              <button
                 onClick={() => updateJob({ status: 'searching', issueType: selectedIssue, location: locationStr })}
                 className="w-full py-4 px-6 bg-slate-900 text-white rounded-2xl font-bold text-lg flex justify-center items-center shadow-lg hover:shadow-xl transition-all"
               >
@@ -208,7 +208,7 @@ export default function GetHelp() {
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Finding a Provider</h2>
             <p className="text-slate-500 mb-8">Scanning network for nearby {getIssueLabel(selectedIssue).toLowerCase()} specialists...</p>
-            <button 
+            <button
               onClick={() => {
                 updateJob({ status: 'canceled_by_customer' });
                 setStep(1);
@@ -269,13 +269,13 @@ export default function GetHelp() {
             </div>
 
             <div className="mt-auto">
-              <button 
+              <button
                 onClick={() => setStep(5)}
                 className="w-full py-4 px-6 bg-brand text-white rounded-2xl font-bold text-lg shadow-lg shadow-brand/30 hover:shadow-brand/40 transition-all flex justify-center items-center gap-2"
               >
-                Proceed to Payment <ChevronRight className="w-5 h-5"/>
+                Proceed to Payment <ChevronRight className="w-5 h-5" />
               </button>
-              <button 
+              <button
                 onClick={() => {
                   updateJob({ status: 'canceled_by_customer' });
                   setStep(1);
@@ -303,10 +303,10 @@ export default function GetHelp() {
                 <div>
                   <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Service</div>
                   <div className="font-semibold text-slate-800 flex items-center gap-2">
-                    {selectedIssue === "flat_tire" ? <Wrench className="w-4 h-4 text-slate-500" /> : 
-                     selectedIssue === "jump_start" ? <Zap className="w-4 h-4 text-slate-500" /> : 
-                     selectedIssue === "fuel_delivery" ? <Fuel className="w-4 h-4 text-slate-500" /> : 
-                     <Truck className="w-4 h-4 text-slate-500" />}
+                    {selectedIssue === "flat_tire" ? <Wrench className="w-4 h-4 text-slate-500" /> :
+                      selectedIssue === "jump_start" ? <Zap className="w-4 h-4 text-slate-500" /> :
+                        selectedIssue === "fuel_delivery" ? <Fuel className="w-4 h-4 text-slate-500" /> :
+                          <Truck className="w-4 h-4 text-slate-500" />}
                     {getIssueLabel(selectedIssue)}
                   </div>
                 </div>
@@ -332,7 +332,7 @@ export default function GetHelp() {
 
             {/* Payment Method */}
             <h3 className="text-lg font-bold text-slate-800 mb-3">Payment Method</h3>
-            
+
             <div className="grid grid-cols-2 gap-3 mb-4">
               <button className="flex items-center justify-center gap-2 py-3 bg-black text-white rounded-2xl font-medium hover:bg-slate-800 transition-colors">
                 <Smartphone className="w-4 h-4" /> Apple Pay
@@ -341,7 +341,7 @@ export default function GetHelp() {
                 <Smartphone className="w-4 h-4" /> Google Pay
               </button>
             </div>
-            
+
             <div className="flex items-center gap-4 mb-4">
               <div className="h-px bg-slate-200 flex-1"></div>
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">or</span>
@@ -366,7 +366,7 @@ export default function GetHelp() {
                   <input type="text" placeholder="123" className="bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200 w-full text-sm font-medium text-slate-800 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all placeholder:text-slate-400" value={cvc} onChange={handleCvcChange} />
                 </div>
               </div>
-              
+
               <div className="mt-4 flex items-center gap-2">
                 <input type="checkbox" id="save-card" className="rounded text-brand focus:ring-brand w-4 h-4 accent-brand cursor-pointer" defaultChecked />
                 <label htmlFor="save-card" className="text-sm font-medium text-slate-600 cursor-pointer">Save payment method for next time</label>
@@ -378,7 +378,7 @@ export default function GetHelp() {
                 <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5" /> Secure checkout</span>
                 <span className="flex items-center gap-1"><Zap className="w-3.5 h-3.5" /> Fast dispatch</span>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setIsProcessingPayment(true);
                   setTimeout(() => {
@@ -395,7 +395,7 @@ export default function GetHelp() {
                   </>
                 ) : (
                   <>
-                    <span className="relative z-10 flex items-center gap-2"><Lock className="w-5 h-5"/> Pay ${price}</span>
+                    <span className="relative z-10 flex items-center gap-2"><Lock className="w-5 h-5" /> Pay ${price}</span>
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                   </>
                 )}
@@ -404,7 +404,7 @@ export default function GetHelp() {
                 Your helper will be dispatched immediately.
               </div>
               {/* Added safe margin so error handling cancel doesn't overlap text */}
-              <button 
+              <button
                 onClick={() => {
                   updateJob({ status: 'canceled_by_customer' });
                   setStep(1);
@@ -426,21 +426,21 @@ export default function GetHelp() {
             <p className="text-slate-500 mb-6">
               {job.status === 'arrived' || job.status === 'in-progress' ? 'Mike R. is at your location.' : 'Mike R. is heading to your location.'}
             </p>
-            
+
             {/* Map Placeholder Tracking */}
             <div className="relative w-full flex-1 min-h-[300px] bg-slate-200 rounded-3xl overflow-hidden border-4 border-white shadow-lg mb-6">
               <div className="absolute inset-0 opacity-30" style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20zM20 0h20v20H20V0z' fill='%2394a3b8' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E")`
               }} />
-              
+
               {/* Route line simulation */}
               <div className="absolute top-1/2 left-1/4 right-1/4 h-1.5 bg-brand/30 rounded-full -translate-y-1/2" />
-              
+
               {/* User location pin */}
               <div className="absolute top-1/2 right-1/4 -mt-5 -mr-4 z-10 w-8 h-8 flex items-center justify-center">
                 <div className="w-4 h-4 bg-slate-900 rounded-full border-2 border-white shadow-md z-10" />
               </div>
-              
+
               {/* Helper Moving Pin */}
               <div className="absolute top-1/2 left-1/4 -mt-8 -ml-4 z-20 transition-all duration-1000 ease-linear animate-[pulse_2s_ease-in-out_infinite]" style={{
                 transform: `translateX(${Math.min(100, (8 - (8 - 5)) * 12)}%)` // Simulate movement CSS trick
@@ -470,21 +470,21 @@ export default function GetHelp() {
             </div>
 
             <div className="bg-white rounded-3xl p-5 shadow-lg border border-slate-100 flex items-center gap-4">
-               <div className="w-12 h-12 bg-slate-100 rounded-full overflow-hidden shrink-0">
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=f8fafc" alt="Driver" />
-               </div>
-               <div>
-                 <div className="font-bold text-slate-900 text-lg">
-                   {job.status === 'arrived' || job.status === 'in-progress' ? 'Arrived' : `${eta} min away`}
-                 </div>
-                 <div className="text-sm text-slate-500">Silver Toyota Tacoma</div>
-               </div>
-               <button className="ml-auto w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-200">
-                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-               </button>
+              <div className="w-12 h-12 bg-slate-100 rounded-full overflow-hidden shrink-0">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=f8fafc" alt="Driver" />
+              </div>
+              <div>
+                <div className="font-bold text-slate-900 text-lg">
+                  {job.status === 'arrived' || job.status === 'in-progress' ? 'Arrived' : `${eta} min away`}
+                </div>
+                <div className="text-sm text-slate-500">Silver Toyota Tacoma</div>
+              </div>
+              <button className="ml-auto w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-200">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              </button>
             </div>
 
-            <button 
+            <button
               onClick={() => {
                 updateJob({ status: 'canceled_by_customer' });
                 setStep(1);
@@ -506,19 +506,19 @@ export default function GetHelp() {
             <p className="text-slate-500 mb-8 max-w-[250px]">
               You're good to go. Safe travels and thanks for using BlitzWerk.
             </p>
-            
+
             <div className="w-full bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-10">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-slate-500">Total Paid</span>
                 <span className="font-bold text-xl">${price}</span>
               </div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-slate-500 flex items-center gap-2"><CreditCard className="w-4 h-4"/> Card ****4242</span>
+                <span className="text-slate-500 flex items-center gap-2"><CreditCard className="w-4 h-4" /> Card ****4242</span>
                 <span className="text-slate-400 text-sm">Success</span>
               </div>
             </div>
 
-            <button 
+            <button
               onClick={goHome}
               className="w-full py-4 px-6 bg-slate-900 text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all"
             >
@@ -533,21 +533,19 @@ export default function GetHelp() {
 }
 
 // Helper Component
-function IssueCard({ icon, title, value, selected, onClick }: { 
-  icon: React.ReactNode, title: string, value: string, selected: boolean, onClick: () => void 
+function IssueCard({ icon, title, value, selected, onClick }: {
+  icon: React.ReactNode, title: string, value: string, selected: boolean, onClick: () => void
 }) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all duration-300 ${
-        selected 
-          ? 'border-brand bg-brand/5 shadow-md scale-[1.02]' 
+      className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all duration-300 ${selected
+          ? 'border-brand bg-brand/5 shadow-md scale-[1.02]'
           : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
-      }`}
+        }`}
     >
-      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors ${
-        selected ? 'bg-brand text-white' : 'bg-slate-100 text-slate-600'
-      }`}>
+      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors ${selected ? 'bg-brand text-white' : 'bg-slate-100 text-slate-600'
+        }`}>
         {icon}
       </div>
       <span className={`font-semibold ${selected ? 'text-brand' : 'text-slate-700'}`}>

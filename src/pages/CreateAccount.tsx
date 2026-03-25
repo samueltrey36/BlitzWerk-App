@@ -14,7 +14,9 @@ const SERVICES = [
 ];
 
 export default function CreateAccount() {
-  const [accountType, setAccountType] = useState<AccountType>('Customer');
+  const [accountType, setAccountType] = useState<AccountType>(
+    (sessionStorage.getItem('intendedRole') as AccountType) || 'Customer'
+  );
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
