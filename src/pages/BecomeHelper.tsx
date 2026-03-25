@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { MapPin, Navigation, DollarSign, CheckCircle, Loader2, Signal, Clock } from "lucide-react";
 import { useJobStore } from "../lib/jobStore";
+import { useAuth } from "../lib/authStore";
 
 type HelperState =
   | 'OFFLINE'
@@ -14,6 +15,7 @@ type HelperState =
 export default function BecomeHelper() {
   const [state, setState] = useState<HelperState>('OFFLINE');
   const { job, updateJob, resetJob } = useJobStore();
+  const { user } = useAuth();
 
   const getIssueLabel = (val: string) => {
     switch (val) {
@@ -102,7 +104,12 @@ export default function BecomeHelper() {
   const handleAccept = () => {
     const distStr = calculateDistance();
     const estEta = distStr ? Math.max(1, Math.ceil(parseFloat(distStr) * 3)) : 8;
-    updateJob({ status: 'pending_confirmation', eta: estEta, price: 45 });
+    updateJob({ 
+      status: 'pending_confirmation', 
+      eta: estEta, 
+      price: 45,
+      helperName: user?.fullName || ''
+    });
     setState('WAITING_CONFIRMATION');
   };
   
@@ -248,11 +255,11 @@ export default function BecomeHelper() {
               <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500 font-medium">Customer</span>
-                  <span className="font-bold text-gray-900">Sarah Jenkins</span>
+                  <span className="font-bold text-gray-900">{job.customerName}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500 font-medium">Vehicle</span>
-                  <span className="font-bold text-gray-900">2019 Toyota Camry (Blue)</span>
+                  <span className="font-bold text-gray-900">{job.customerVehicle || 'Vehicle details unavailable'}</span>
                 </div>
               </div>
 
@@ -309,7 +316,7 @@ export default function BecomeHelper() {
               <div className="bg-green-50 rounded-2xl p-4 flex items-center justify-between border border-green-100 text-left">
                  <div>
                    <p className="text-sm text-green-900 font-bold mb-0.5">Customer requested help!</p>
-                   <p className="text-xs text-green-700 font-medium">Sarah J. has been notified you are on the way.</p>
+                   <p className="text-xs text-green-700 font-medium">{job.customerName ? job.customerName.split(' ')[0] : 'The customer'} has been notified you are on the way.</p>
                  </div>
               </div>
 
@@ -341,7 +348,7 @@ export default function BecomeHelper() {
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Service in progress</h2>
-                <p className="text-gray-600 font-medium">Flat tire repair for Sarah J.</p>
+                <p className="text-gray-600 font-medium">{job.issueType ? getIssueLabel(job.issueType) : 'Service'} for {job.customerName ? job.customerName.split(' ')[0] : 'the customer'}.</p>
               </div>
               
               <div className="text-sm text-left bg-gray-50 p-4 rounded-2xl text-gray-600 border border-gray-100 font-medium leading-relaxed">

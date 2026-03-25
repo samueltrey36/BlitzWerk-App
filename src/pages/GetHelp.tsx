@@ -2,16 +2,37 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, MapPin, Wrench, Zap, Fuel, Truck, CheckCircle2, Navigation, Clock, CreditCard, ChevronRight, ShieldCheck, Lock, Smartphone } from "lucide-react";
 import { useJobStore } from "../lib/jobStore";
+import { useAuth } from "../lib/authStore";
 
 export default function GetHelp() {
   const navigate = useNavigate();
   const { job, updateJob, resetJob } = useJobStore();
+  const { user } = useAuth();
 
-  // Steps: 1: Issue, 2: Location, 3: Searching, 4: Match, 5: Payment, 6: Tracking, 7: Complete
+  // Steps: 1: Issue, 2: Location, 3: Vehicle, 4: Searching, 5: Match, 6: Payment, 7: Tracking, 8: Complete
   const [step, setStep] = useState(1);
   const [selectedIssue, setSelectedIssue] = useState<string>("");
   const [locationStr, setLocationStr] = useState("Getting your location...");
   const [locationError, setLocationError] = useState("");
+  
+  const [vehicle, setVehicle] = useState(() => {
+    try {
+      const saved = localStorage.getItem('blitzwerk_vehicle');
+      return saved ? JSON.parse(saved) : { make: '', model: '', year: '', color: '' };
+    } catch {
+      return { make: '', model: '', year: '', color: '' };
+    }
+  });
+
+  const CAR_MODELS: Record<string, string[]> = {
+    Toyota: ['Camry', 'Corolla', 'RAV4', 'Highlander', 'Prius', 'Tacoma', 'Other'],
+    Honda: ['Civic', 'Accord', 'CR-V', 'Pilot', 'Odyssey', 'Other'],
+    Ford: ['F-150', 'Escape', 'Explorer', 'Focus', 'Mustang', 'Other'],
+    Chevrolet: ['Silverado', 'Equinox', 'Malibu', 'Tahoe', 'Cruze', 'Other'],
+    Nissan: ['Altima', 'Sentra', 'Rogue', 'Maxima', 'Other'],
+    Other: ['Other']
+  };
+
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [cardNumber, setCardNumber] = useState("");
   const [expDate, setExpDate] = useState("");
@@ -45,10 +66,10 @@ export default function GetHelp() {
 
   // React to global status changes
   useEffect(() => {
-    if (job.status === 'searching') setStep(3);
-    else if (job.status === 'pending_confirmation') setStep(4);
-    else if (job.status === 'confirmed' || job.status === 'arrived' || job.status === 'in-progress') setStep(6);
-    else if (job.status === 'completed') setStep(7);
+    if (job.status === 'searching') setStep(4);
+    else if (job.status === 'pending_confirmation') setStep(5);
+    else if (job.status === 'confirmed' || job.status === 'arrived' || job.status === 'in-progress') setStep(7);
+    else if (job.status === 'completed') setStep(8);
     else if (job.status === 'idle' || job.status === 'canceled_by_customer') setStep(1);
     else if (job.status === 'canceled_by_helper') {
       alert('The helper has canceled the job.');
@@ -105,12 +126,12 @@ export default function GetHelp() {
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <h1 className="text-2xl font-bold text-slate-900">Get Help</h1>
-            <span className="text-sm font-medium text-slate-500">Step {step} of 7</span>
+            <span className="text-sm font-medium text-slate-500">Step {step} of 8</span>
           </div>
           <div className="h-2 bg-slate-200 rounded-full w-full overflow-hidden">
             <div
               className="h-full bg-brand rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${(step / 7) * 100}%` }}
+              style={{ width: `${(step / 8) * 100}%` }}
             />
           </div>
         </div>
@@ -187,7 +208,7 @@ export default function GetHelp() {
 
             <div className="mt-8">
               <button
-                onClick={() => updateJob({ status: 'searching', issueType: selectedIssue, location: locationStr })}
+                onClick={() => setStep(3)}
                 className="w-full py-4 px-6 bg-slate-900 text-white rounded-2xl font-bold text-lg flex justify-center items-center shadow-lg hover:shadow-xl transition-all"
               >
                 Confirm Location
@@ -196,8 +217,102 @@ export default function GetHelp() {
           </div>
         )}
 
-        {/* Step 3: Searching */}
+        {/* Step 3: Vehicle Information */}
         {step === 3 && (
+          <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h2 className="text-xl font-semibold mb-6 text-slate-800">Your Vehicle</h2>
+            
+            <div className="space-y-4 mb-8">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Make</label>
+                <select 
+                  value={vehicle.make} 
+                  onChange={e => setVehicle({...vehicle, make: e.target.value, model: ''})} 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
+                >
+                  <option value="" disabled>Select Make</option>
+                  <option value="Toyota">Toyota</option>
+                  <option value="Honda">Honda</option>
+                  <option value="Ford">Ford</option>
+                  <option value="Chevrolet">Chevrolet</option>
+                  <option value="Nissan">Nissan</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Model</label>
+                <select 
+                  value={vehicle.model} 
+                  onChange={e => setVehicle({...vehicle, model: e.target.value})} 
+                  disabled={!vehicle.make}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none disabled:opacity-50"
+                >
+                  <option value="" disabled>Select Model</option>
+                  {vehicle.make && CAR_MODELS[vehicle.make]?.map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Year</label>
+                  <select 
+                    value={vehicle.year} 
+                    onChange={e => setVehicle({...vehicle, year: e.target.value})} 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
+                  >
+                    <option value="" disabled>Year</option>
+                    {Array.from({length: 30}, (_, i) => 2026 - i).map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
+                  <select 
+                    value={vehicle.color} 
+                    onChange={e => setVehicle({...vehicle, color: e.target.value})} 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
+                  >
+                    <option value="" disabled>Color</option>
+                    <option value="Black">Black</option>
+                    <option value="White">White</option>
+                    <option value="Silver">Silver</option>
+                    <option value="Gray">Gray</option>
+                    <option value="Red">Red</option>
+                    <option value="Blue">Blue</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-auto">
+              <button
+                disabled={!vehicle.make || !vehicle.model || !vehicle.year || !vehicle.color}
+                onClick={() => {
+                  localStorage.setItem('blitzwerk_vehicle', JSON.stringify(vehicle));
+                  const vehicleStr = `${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.color})`;
+                  updateJob({ 
+                    status: 'searching', 
+                    issueType: selectedIssue, 
+                    location: locationStr, 
+                    customerVehicle: vehicleStr,
+                    customerName: user?.fullName || ''
+                  });
+                }}
+                className="w-full py-4 px-6 bg-brand text-white rounded-2xl font-bold text-lg flex justify-center items-center shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:shadow-none"
+              >
+                Request Help
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Searching */}
+        {step === 4 && (
           <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in duration-500 text-center py-12">
             <div className="relative w-24 h-24 mb-8">
               <div className="absolute inset-0 border-4 border-slate-100 rounded-full" />
@@ -220,8 +335,8 @@ export default function GetHelp() {
           </div>
         )}
 
-        {/* Step 4: Match Found */}
-        {step === 4 && (
+        {/* Step 5: Match Found */}
+        {step === 5 && (
           <div className="flex-1 flex flex-col animate-in slide-in-from-bottom-8 fade-in duration-500">
             <div className="text-center mb-8">
               <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -237,7 +352,7 @@ export default function GetHelp() {
                   <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=f8fafc" alt="Driver" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-slate-900">Mike R.</h3>
+                  <h3 className="font-bold text-lg text-slate-900">{job.helperName}</h3>
                   <p className="text-sm text-slate-500">4.9 ★ • 1,240 jobs</p>
                 </div>
                 <div className="ml-auto text-right">
@@ -270,7 +385,7 @@ export default function GetHelp() {
 
             <div className="mt-auto">
               <button
-                onClick={() => setStep(5)}
+                onClick={() => setStep(6)}
                 className="w-full py-4 px-6 bg-brand text-white rounded-2xl font-bold text-lg shadow-lg shadow-brand/30 hover:shadow-brand/40 transition-all flex justify-center items-center gap-2"
               >
                 Proceed to Payment <ChevronRight className="w-5 h-5" />
@@ -288,8 +403,8 @@ export default function GetHelp() {
           </div>
         )}
 
-        {/* Step 5: Payment Screen */}
-        {step === 5 && (
+        {/* Step 6: Payment Screen */}
+        {step === 6 && (
           <div className="flex-1 flex flex-col animate-in slide-in-from-bottom-8 fade-in duration-500">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-slate-900">Complete Payment</h2>
@@ -318,7 +433,7 @@ export default function GetHelp() {
               <div className="bg-slate-50 rounded-2xl p-3 flex gap-4 text-sm mb-2">
                 <div className="flex-1">
                   <div className="text-slate-400 text-xs mb-0.5">Helper</div>
-                  <div className="font-medium text-slate-700">Mike R.</div>
+                  <div className="font-medium text-slate-700">{job.helperName}</div>
                 </div>
                 <div className="flex-1 border-l border-slate-200 pl-4">
                   <div className="text-slate-400 text-xs mb-0.5">ETA</div>
@@ -417,14 +532,14 @@ export default function GetHelp() {
           </div>
         )}
 
-        {/* Step 6: Waiting / Tracking */}
-        {step === 6 && (
+        {/* Step 7: Waiting / Tracking */}
+        {step === 7 && (
           <div className="flex-1 flex flex-col animate-in fade-in duration-500 relative">
             <h2 className="text-2xl font-bold text-slate-900 mb-2">
               {job.status === 'arrived' || job.status === 'in-progress' ? 'Your helper has arrived' : 'Help is on the way'}
             </h2>
             <p className="text-slate-500 mb-6">
-              {job.status === 'arrived' || job.status === 'in-progress' ? 'Mike R. is at your location.' : 'Mike R. is heading to your location.'}
+              {job.status === 'arrived' || job.status === 'in-progress' ? `${job.helperName} is at your location.` : `${job.helperName} is heading to your location.`}
             </p>
 
             {/* Map Placeholder Tracking */}
@@ -477,7 +592,7 @@ export default function GetHelp() {
                 <div className="font-bold text-slate-900 text-lg">
                   {job.status === 'arrived' || job.status === 'in-progress' ? 'Arrived' : `${eta} min away`}
                 </div>
-                <div className="text-sm text-slate-500">Silver Toyota Tacoma</div>
+                {job.helperVehicle && <div className="text-sm text-slate-500">{job.helperVehicle}</div>}
               </div>
               <button className="ml-auto w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-200">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
@@ -496,8 +611,8 @@ export default function GetHelp() {
           </div>
         )}
 
-        {/* Step 7: Completion */}
-        {step === 7 && (
+        {/* Step 8: Completion */}
+        {step === 8 && (
           <div className="flex-1 flex flex-col items-center justify-center animate-in zoom-in-95 duration-500 py-12 text-center text-slate-900">
             <div className="w-24 h-24 bg-brand text-white rounded-full flex items-center justify-center mb-6 shadow-xl shadow-brand/30">
               <CheckCircle2 className="w-12 h-12" />

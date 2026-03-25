@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 export type JobStatus = 'idle' | 'searching' | 'pending_confirmation' | 'confirmed' | 'arrived' | 'in-progress' | 'completed' | 'canceled_by_customer' | 'canceled_by_helper';
 
@@ -9,6 +9,10 @@ export interface JobState {
   eta: number;
   price: number;
   helperLocation?: string;
+  customerVehicle?: string;
+  customerName?: string;
+  helperName?: string;
+  helperVehicle?: string;
 }
 
 const defaultState: JobState = {
@@ -28,46 +32,61 @@ interface JobContextType {
 const JobContext = createContext<JobContextType | undefined>(undefined);
 
 export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [job, setJob] = useState<JobState>(() => {
-    try {
-      const saved = localStorage.getItem('blitzwerk_job');
-      return saved ? JSON.parse(saved) : defaultState;
-    } catch {
-      return defaultState;
-    }
-  });
+  const [job, setJob] = useState<JobState>(defaultState);
+  const mounted = useRef(true);
 
-  const updateJob = (updates: Partial<JobState>) => {
-    setJob((prev) => {
-      const next = { ...prev, ...updates };
-      localStorage.setItem('blitzwerk_job', JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const resetJob = () => {
-    setJob(defaultState);
-    localStorage.removeItem('blitzwerk_job');
-  };
-
-  // Sync state across multiple browser tabs
+  // Poll backend for state updates
   useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'blitzwerk_job') {
-        if (e.newValue) {
-          try {
-            setJob(JSON.parse(e.newValue));
-          } catch (error) {
-            console.error('Failed to parse blitzwerk_job from storage event', error);
-          }
-        } else {
-          setJob(defaultState);
+    mounted.current = true;
+    
+    const fetchJob = async () => {
+      try {
+        const res = await fetch('/api/job');
+        if (res.ok && mounted.current) {
+          const data = await res.json();
+          // Only update if state actually changed to prevent unnecessary re-renders
+          setJob(prev => JSON.stringify(prev) !== JSON.stringify(data) ? data : prev);
         }
+      } catch (err) {
+        // Silently catch network errors if backend is down
       }
     };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+
+    // Initial fetch
+    fetchJob();
+
+    // Poll every 2 seconds
+    const interval = setInterval(fetchJob, 2000);
+    return () => {
+      mounted.current = false;
+      clearInterval(interval);
+    };
   }, []);
+
+  const updateJob = async (updates: Partial<JobState>) => {
+    // Optimistic update
+    setJob((prev) => ({ ...prev, ...updates }));
+    
+    // Push to backend
+    try {
+      await fetch('/api/job', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+    } catch (err) {
+      console.error('Failed to update job on backend', err);
+    }
+  };
+
+  const resetJob = async () => {
+    setJob(defaultState);
+    try {
+      await fetch('/api/job/reset', { method: 'POST' });
+    } catch (err) {
+      console.error('Failed to reset job on backend', err);
+    }
+  };
 
   return (
     <JobContext.Provider value={{ job, updateJob, resetJob }}>
