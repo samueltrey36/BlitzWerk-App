@@ -452,6 +452,23 @@ export default function GetHelp() {
               </div>
             </div>
 
+            {/* Helper Location Popup */}
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 mb-6">
+              <div className="w-10 h-10 bg-brand/10 rounded-full flex items-center justify-center shrink-0">
+                {job.helperLocation === "Fetching location..." ? (
+                  <Loader2 className="w-5 h-5 text-brand animate-spin" />
+                ) : (
+                  <Navigation className="w-5 h-5 text-brand" />
+                )}
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mb-1">Helper Location</p>
+                <p className={`font-medium ${job.helperLocation === 'Location unavailable' || job.helperLocation === 'Geolocation not supported' ? 'text-red-500' : 'text-slate-800'}`}>
+                  {job.helperLocation || 'Waiting for helper...'}
+                </p>
+              </div>
+            </div>
+
             <div className="bg-white rounded-3xl p-5 shadow-lg border border-slate-100 flex items-center gap-4">
                <div className="w-12 h-12 bg-slate-100 rounded-full overflow-hidden shrink-0">
                   <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=f8fafc" alt="Driver" />
