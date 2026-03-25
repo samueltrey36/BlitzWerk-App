@@ -1,0 +1,8 @@
+{
+  "name": "Copy of BlitzWerk",
+  "description": "Modern roadside assistance landing page connecting stranded drivers with nearby helpers.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ]
+}
