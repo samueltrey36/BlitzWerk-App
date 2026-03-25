@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, MapPin, Wrench, Zap, Fuel, Truck, CheckCircle2, Navigation, Clock, CreditCard, ChevronRight } from "lucide-react";
+import { Loader2, MapPin, Wrench, Zap, Fuel, Truck, CheckCircle2, Navigation, Clock, CreditCard, ChevronRight, ShieldCheck, Lock, Smartphone } from "lucide-react";
 import { useJobStore } from "../lib/jobStore";
 
 export default function GetHelp() {
   const navigate = useNavigate();
   const { job, updateJob, resetJob } = useJobStore();
   
-  // Steps: 1: Issue, 2: Location, 3: Searching, 4: Match, 5: Tracking, 6: Complete
+  // Steps: 1: Issue, 2: Location, 3: Searching, 4: Match, 5: Payment, 6: Tracking, 7: Complete
   const [step, setStep] = useState(1);
   const [selectedIssue, setSelectedIssue] = useState<string>("");
   const [locationStr, setLocationStr] = useState("Getting your location...");
   const [locationError, setLocationError] = useState("");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const eta = job.eta || 0;
   const price = job.price || 0;
@@ -20,8 +21,8 @@ export default function GetHelp() {
   useEffect(() => {
     if (job.status === 'searching') setStep(3);
     else if (job.status === 'pending_confirmation') setStep(4);
-    else if (job.status === 'confirmed' || job.status === 'arrived' || job.status === 'in-progress') setStep(5);
-    else if (job.status === 'completed') setStep(6);
+    else if (job.status === 'confirmed' || job.status === 'arrived' || job.status === 'in-progress') setStep(6);
+    else if (job.status === 'completed') setStep(7);
     else if (job.status === 'idle' || job.status === 'canceled_by_customer') setStep(1);
     else if (job.status === 'canceled_by_helper') {
       alert('The helper has canceled the job.');
@@ -78,12 +79,12 @@ export default function GetHelp() {
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <h1 className="text-2xl font-bold text-slate-900">Get Help</h1>
-            <span className="text-sm font-medium text-slate-500">Step {step} of 6</span>
+            <span className="text-sm font-medium text-slate-500">Step {step} of 7</span>
           </div>
           <div className="h-2 bg-slate-200 rounded-full w-full overflow-hidden">
             <div 
               className="h-full bg-brand rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${(step / 6) * 100}%` }}
+              style={{ width: `${(step / 7) * 100}%` }}
             />
           </div>
         </div>
@@ -243,10 +244,10 @@ export default function GetHelp() {
 
             <div className="mt-auto">
               <button 
-                onClick={() => updateJob({ status: 'confirmed' })}
-                className="w-full py-4 px-6 bg-brand text-white rounded-2xl font-bold text-lg shadow-lg shadow-brand/30 hover:shadow-brand/40 transition-all flex justify-center items-center"
+                onClick={() => setStep(5)}
+                className="w-full py-4 px-6 bg-brand text-white rounded-2xl font-bold text-lg shadow-lg shadow-brand/30 hover:shadow-brand/40 transition-all flex justify-center items-center gap-2"
               >
-                Confirm Helper
+                Proceed to Payment <ChevronRight className="w-5 h-5"/>
               </button>
               <button 
                 onClick={() => {
@@ -261,8 +262,137 @@ export default function GetHelp() {
           </div>
         )}
 
-        {/* Step 5: Waiting / Tracking */}
+        {/* Step 5: Payment Screen */}
         {step === 5 && (
+          <div className="flex-1 flex flex-col animate-in slide-in-from-bottom-8 fade-in duration-500">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-slate-900">Complete Payment</h2>
+              <p className="text-slate-500">Confirm your request and we'll dispatch your helper.</p>
+            </div>
+
+            {/* Service Summary Card */}
+            <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 mb-6 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-brand"></div>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Service</div>
+                  <div className="font-semibold text-slate-800 flex items-center gap-2">
+                    {selectedIssue === "flat_tire" ? <Wrench className="w-4 h-4 text-slate-500" /> : 
+                     selectedIssue === "jump_start" ? <Zap className="w-4 h-4 text-slate-500" /> : 
+                     selectedIssue === "fuel_delivery" ? <Fuel className="w-4 h-4 text-slate-500" /> : 
+                     <Truck className="w-4 h-4 text-slate-500" />}
+                    {getIssueLabel(selectedIssue)}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-slate-900">${price}</div>
+                  <div className="text-xs font-medium text-slate-500">flat fee</div>
+                </div>
+              </div>
+              <div className="bg-slate-50 rounded-2xl p-3 flex gap-4 text-sm mb-2">
+                <div className="flex-1">
+                  <div className="text-slate-400 text-xs mb-0.5">Helper</div>
+                  <div className="font-medium text-slate-700">Mike R.</div>
+                </div>
+                <div className="flex-1 border-l border-slate-200 pl-4">
+                  <div className="text-slate-400 text-xs mb-0.5">ETA</div>
+                  <div className="font-bold text-brand">{eta} mins</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                <ShieldCheck className="w-4 h-4 text-green-500" /> No hidden fees or taxes
+              </div>
+            </div>
+
+            {/* Payment Method */}
+            <h3 className="text-lg font-bold text-slate-800 mb-3">Payment Method</h3>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <button className="flex items-center justify-center gap-2 py-3 bg-black text-white rounded-2xl font-medium hover:bg-slate-800 transition-colors">
+                <Smartphone className="w-4 h-4" /> Apple Pay
+              </button>
+              <button className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-800 rounded-2xl font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                <Smartphone className="w-4 h-4" /> Google Pay
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-4 mb-4">
+              <div className="h-px bg-slate-200 flex-1"></div>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">or</span>
+              <div className="h-px bg-slate-200 flex-1"></div>
+            </div>
+
+            <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 mb-6">
+              <div className="relative mb-3">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Card Number</label>
+                <div className="flex items-center bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200 focus-within:border-brand focus-within:ring-1 focus-within:ring-brand transition-all">
+                  <CreditCard className="w-5 h-5 text-slate-400 mr-2" />
+                  <input type="text" placeholder="0000 0000 0000 0000" className="bg-transparent w-full text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400" />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">Exp</label>
+                  <input type="text" placeholder="MM/YY" className="bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200 w-full text-sm font-medium text-slate-800 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all placeholder:text-slate-400" />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1 block">CVC</label>
+                  <input type="text" placeholder="123" className="bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200 w-full text-sm font-medium text-slate-800 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all placeholder:text-slate-400" />
+                </div>
+              </div>
+              
+              <div className="mt-4 flex items-center gap-2">
+                <input type="checkbox" id="save-card" className="rounded text-brand focus:ring-brand w-4 h-4 accent-brand cursor-pointer" defaultChecked />
+                <label htmlFor="save-card" className="text-sm font-medium text-slate-600 cursor-pointer">Save payment method for next time</label>
+              </div>
+            </div>
+
+            <div className="mt-auto">
+              <div className="flex justify-center flex-wrap gap-4 mb-4 text-xs font-medium text-slate-500">
+                <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5" /> Secure checkout</span>
+                <span className="flex items-center gap-1"><Zap className="w-3.5 h-3.5" /> Fast dispatch</span>
+              </div>
+              <button 
+                onClick={() => {
+                  setIsProcessingPayment(true);
+                  setTimeout(() => {
+                    setIsProcessingPayment(false);
+                    updateJob({ status: 'confirmed' });
+                  }, 1500);
+                }}
+                disabled={isProcessingPayment}
+                className="w-full py-4 px-6 bg-brand text-white rounded-2xl font-bold text-lg shadow-lg shadow-brand/30 hover:shadow-brand/40 transition-all flex justify-center items-center disabled:opacity-75 disabled:cursor-not-allowed group relative overflow-hidden"
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <Loader2 className="w-6 h-6 animate-spin mr-2" /> Processing...
+                  </>
+                ) : (
+                  <>
+                    <span className="relative z-10 flex items-center gap-2"><Lock className="w-5 h-5"/> Pay ${price}</span>
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                  </>
+                )}
+              </button>
+              <div className="text-center mt-3 text-xs text-slate-500">
+                Your helper will be dispatched immediately.
+              </div>
+              {/* Added safe margin so error handling cancel doesn't overlap text */}
+              <button 
+                onClick={() => {
+                  updateJob({ status: 'canceled_by_customer' });
+                  setStep(1);
+                }}
+                className="w-full py-3 px-6 text-slate-500 rounded-2xl font-bold text-sm mt-3 hover:bg-slate-100 transition-all"
+              >
+                Cancel Request
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 6: Waiting / Tracking */}
+        {step === 6 && (
           <div className="flex-1 flex flex-col animate-in fade-in duration-500 relative">
             <h2 className="text-2xl font-bold text-slate-900 mb-2">
               {job.status === 'arrived' || job.status === 'in-progress' ? 'Your helper has arrived' : 'Help is on the way'}
@@ -323,8 +453,8 @@ export default function GetHelp() {
           </div>
         )}
 
-        {/* Step 6: Completion */}
-        {step === 6 && (
+        {/* Step 7: Completion */}
+        {step === 7 && (
           <div className="flex-1 flex flex-col items-center justify-center animate-in zoom-in-95 duration-500 py-12 text-center text-slate-900">
             <div className="w-24 h-24 bg-brand text-white rounded-full flex items-center justify-center mb-6 shadow-xl shadow-brand/30">
               <CheckCircle2 className="w-12 h-12" />
