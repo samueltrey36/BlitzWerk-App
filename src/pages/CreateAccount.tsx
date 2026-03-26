@@ -1,3 +1,4 @@
+import { supabase } from '../lib/supabase.ts';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -36,23 +37,21 @@ export default function CreateAccount() {
   };
 
   const toggleService = (serviceId: string) => {
-    setSelectedServices(prev => 
+    setSelectedServices(prev =>
       prev.includes(serviceId)
         ? prev.filter(id => id !== serviceId)
         : [...prev, serviceId]
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsSuccess(false);
 
-    // Basic Validation
-    if (!formData.fullName || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all required fields.');
-      return;
-    }
+    // Basic Validationconst handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match.');
@@ -65,10 +64,51 @@ export default function CreateAccount() {
     }
 
     setIsSubmitting(true);
-    // Simulate network request
-    setTimeout(() => {
+
+    // SIGN UP
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (signUpError) {
+      setError(signUpError.message);
       setIsSubmitting(false);
-      
+      return;
+    }
+
+    // SIGN IN (REQUIRED FOR RLS)
+    const { data: signInData, error: signInError } =
+      await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+    if (signInError) {
+      setError(signInError.message);
+      setIsSubmitting(false);
+      return;
+    }
+
+    console.log('SIGN IN USER:', signInData.user);
+
+    if (signInData.user) {
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: signInData.user.id,
+        email: formData.email,
+        phone: formData.phone,
+        full_name: formData.fullName,
+        role: accountType === 'Customer' ? 'CUSTOMER' : 'HELPER',
+        selected_services:
+          accountType === 'Helper' ? selectedServices.join(', ') : null,
+      });
+
+      if (profileError) {
+        setError(profileError.message);
+        setIsSubmitting(false);
+        return;
+      }
+
       login({
         fullName: formData.fullName,
         email: formData.email,
@@ -76,30 +116,33 @@ export default function CreateAccount() {
         accountType,
         selectedServices: accountType === 'Helper' ? selectedServices : [],
       });
-      
-      setIsSuccess(true);
-      // Backend not implemented yet
-      console.log('Account created:', { accountType, ...formData, selectedServices: accountType === 'Helper' ? selectedServices : [] });
 
-      // Navigate to respective dashboard after a tiny tick to show visual success state briefly 
-      setTimeout(() => {
-        let targetRoute = accountType === 'Customer' ? '/customer-dashboard' : '/helper-dashboard';
-        const flowReturnTo = sessionStorage.getItem('flowReturnTo');
-        if (flowReturnTo) {
-          if (accountType === 'Customer' && flowReturnTo === '/get-help') targetRoute = flowReturnTo;
-          if (accountType === 'Helper' && flowReturnTo === '/become-helper') targetRoute = flowReturnTo;
-          sessionStorage.removeItem('flowReturnTo');
+      setIsSuccess(true);
+      setIsSubmitting(false);
+
+      let targetRoute =
+        accountType === 'Customer' ? '/customer-dashboard' : '/helper-dashboard';
+
+      const flowReturnTo = sessionStorage.getItem('flowReturnTo');
+
+      if (flowReturnTo) {
+        if (accountType === 'Customer' && flowReturnTo === '/get-help') {
+          targetRoute = flowReturnTo;
         }
-        navigate(targetRoute, { replace: true });
-      }, 800);
-      
-    }, 1000);
+        if (accountType === 'Helper' && flowReturnTo === '/become-helper') {
+          targetRoute = flowReturnTo;
+        }
+        sessionStorage.removeItem('flowReturnTo');
+      }
+
+      navigate(targetRoute, { replace: true });
+    }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-center"
@@ -108,7 +151,7 @@ export default function CreateAccount() {
             <Zap className="w-7 h-7 text-white fill-white" />
           </div>
         </motion.div>
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -116,7 +159,7 @@ export default function CreateAccount() {
         >
           Create your account
         </motion.h2>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -129,7 +172,7 @@ export default function CreateAccount() {
         </motion.p>
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
@@ -145,7 +188,7 @@ export default function CreateAccount() {
             )}
 
             {isSuccess && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 className="bg-green-50 text-green-700 p-4 rounded-xl text-sm font-medium border border-green-200 flex items-start gap-3"
@@ -169,11 +212,10 @@ export default function CreateAccount() {
                     key={type}
                     type="button"
                     onClick={() => setAccountType(type)}
-                    className={`relative flex items-center justify-center p-4 border rounded-xl text-sm font-semibold transition-all ${
-                      accountType === type 
-                        ? 'border-brand bg-brand/5 text-brand shadow-sm ring-1 ring-brand' 
-                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
+                    className={`relative flex items-center justify-center p-4 border rounded-xl text-sm font-semibold transition-all ${accountType === type
+                      ? 'border-brand bg-brand/5 text-brand shadow-sm ring-1 ring-brand'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
                   >
                     {type}
                     {accountType === type && (
@@ -316,15 +358,13 @@ export default function CreateAccount() {
                             key={service.id}
                             type="button"
                             onClick={() => toggleService(service.id)}
-                            className={`flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
-                              isSelected
-                                ? 'border-brand bg-brand/5 ring-1 ring-brand'
-                                : 'border-slate-200 bg-slate-50 hover:bg-white hover:border-slate-300'
-                            }`}
+                            className={`flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${isSelected
+                              ? 'border-brand bg-brand/5 ring-1 ring-brand'
+                              : 'border-slate-200 bg-slate-50 hover:bg-white hover:border-slate-300'
+                              }`}
                           >
-                            <div className={`mt-0.5 p-1.5 rounded-lg shrink-0 ${
-                              isSelected ? 'bg-brand text-white' : 'bg-white text-slate-400 shadow-sm border border-slate-100'
-                            }`}>
+                            <div className={`mt-0.5 p-1.5 rounded-lg shrink-0 ${isSelected ? 'bg-brand text-white' : 'bg-white text-slate-400 shadow-sm border border-slate-100'
+                              }`}>
                               <Icon className="w-4 h-4" />
                             </div>
                             <div className="flex-1">
@@ -332,9 +372,8 @@ export default function CreateAccount() {
                                 {service.label}
                               </p>
                             </div>
-                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-1 ${
-                              isSelected ? 'border-brand bg-brand' : 'border-slate-300 bg-white'
-                            }`}>
+                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-1 ${isSelected ? 'border-brand bg-brand' : 'border-slate-300 bg-white'
+                              }`}>
                               {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                             </div>
                           </button>
