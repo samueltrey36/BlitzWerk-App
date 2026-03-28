@@ -47,14 +47,14 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <>
-              <Link to="/login" onClick={() => sessionStorage.removeItem('flowReturnTo')} className="text-sm font-semibold text-brand px-2 sm:px-4 py-2 rounded-full hover:bg-brand/5 transition-colors whitespace-nowrap">
-                Log In
-              </Link>
-              <Link to="/create-account" onClick={() => sessionStorage.removeItem('flowReturnTo')} className="bg-brand text-white text-sm font-semibold px-3 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-lg shadow-brand/20 hover:scale-105 transition-transform active:scale-95 inline-block whitespace-nowrap">
-                Create Account
-              </Link>
-            </>
+            <div className="flex items-center gap-2 sm:gap-6">
+              <a href="tel:8326574825" className="flex items-center gap-2 md:gap-3 text-xl sm:text-2xl md:text-3xl font-black font-display text-red-600 hover:text-red-700 transition-colors drop-shadow-sm">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-red-100 flex items-center justify-center shadow-lg animate-pulse border-2 border-red-200">
+                  <span className="text-xl sm:text-2xl">📞</span>
+                </div>
+                832-657-4825
+              </a>
+            </div>
           )}
         </div>
       </div>

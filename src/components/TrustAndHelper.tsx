@@ -10,10 +10,9 @@ const trustFeatures = [
 ];
 
 const helperBenefits = [
-  { icon: Clock, title: "Work Anytime", description: "You're the boss. Choose your own hours and work when you want." },
-  { icon: Briefcase, title: "No Company Required", description: "Start earning as an independent helper with your own vehicle." },
-  { icon: Zap, title: "Accept Nearby Jobs", description: "Get notified of stranded drivers in your immediate vicinity." },
-  { icon: DollarSign, title: "Get Paid Instantly", description: "Earnings are deposited into your account as soon as the job is done." },
+  { icon: DollarSign, title: "Get paid per job", description: "Earnings are deposited directly into your account after each completed job." },
+  { icon: Clock, title: "Work when you want", description: "You're the boss. Choose your own hours and turn on the app only when you're available." },
+  { icon: Briefcase, title: "No long-term commitment", description: "Earn on your own terms without any strict schedules or company obligations." },
 ];
 
 export default function TrustAndHelper() {
@@ -86,7 +85,7 @@ export default function TrustAndHelper() {
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand rounded-full blur-3xl"></div>
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500 rounded-full blur-3xl"></div>
         </div>
-        
+
         <div className="max-w-7xl mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -97,7 +96,7 @@ export default function TrustAndHelper() {
             >
               <div className="bg-white/5 backdrop-blur-xl p-8 md:p-12 rounded-[48px] border border-white/10 shadow-2xl">
                 <h2 className="text-4xl md:text-5xl font-display font-extrabold text-white mb-8 leading-tight">
-                  Earn Money Helping Drivers
+                  Earn Money Helping Drivers in Houston Tx
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-8 mb-12">
                   {helperBenefits.map((benefit, index) => (
@@ -111,7 +110,7 @@ export default function TrustAndHelper() {
                   ))}
                 </div>
                 <Link to="/become-helper" className="w-full bg-brand text-white text-xl font-bold px-8 py-5 rounded-2xl shadow-xl shadow-brand/30 hover:scale-105 transition-transform active:scale-95 inline-block text-center">
-                  Start Earning Today
+                  Become a Helper
                 </Link>
               </div>
             </motion.div>
