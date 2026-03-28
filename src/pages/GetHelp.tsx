@@ -14,7 +14,7 @@ export default function GetHelp() {
   const [selectedIssue, setSelectedIssue] = useState<string>("");
   const [locationStr, setLocationStr] = useState("Getting your location...");
   const [locationError, setLocationError] = useState("");
-  
+
   const [vehicle, setVehicle] = useState(() => {
     try {
       const saved = localStorage.getItem('blitzwerk_vehicle');
@@ -221,13 +221,13 @@ export default function GetHelp() {
         {step === 3 && (
           <div className="flex-1 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
             <h2 className="text-xl font-semibold mb-6 text-slate-800">Your Vehicle</h2>
-            
+
             <div className="space-y-4 mb-8">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Make</label>
-                <select 
-                  value={vehicle.make} 
-                  onChange={e => setVehicle({...vehicle, make: e.target.value, model: ''})} 
+                <select
+                  value={vehicle.make}
+                  onChange={e => setVehicle({ ...vehicle, make: e.target.value, model: '' })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
                 >
                   <option value="" disabled>Select Make</option>
@@ -242,9 +242,9 @@ export default function GetHelp() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Model</label>
-                <select 
-                  value={vehicle.model} 
-                  onChange={e => setVehicle({...vehicle, model: e.target.value})} 
+                <select
+                  value={vehicle.model}
+                  onChange={e => setVehicle({ ...vehicle, model: e.target.value })}
                   disabled={!vehicle.make}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none disabled:opacity-50"
                 >
@@ -258,22 +258,22 @@ export default function GetHelp() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Year</label>
-                  <select 
-                    value={vehicle.year} 
-                    onChange={e => setVehicle({...vehicle, year: e.target.value})} 
+                  <select
+                    value={vehicle.year}
+                    onChange={e => setVehicle({ ...vehicle, year: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
                   >
                     <option value="" disabled>Year</option>
-                    {Array.from({length: 30}, (_, i) => 2026 - i).map(year => (
+                    {Array.from({ length: 30 }, (_, i) => 2026 - i).map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Color</label>
-                  <select 
-                    value={vehicle.color} 
-                    onChange={e => setVehicle({...vehicle, color: e.target.value})} 
+                  <select
+                    value={vehicle.color}
+                    onChange={e => setVehicle({ ...vehicle, color: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none"
                   >
                     <option value="" disabled>Color</option>
@@ -295,10 +295,10 @@ export default function GetHelp() {
                 onClick={() => {
                   localStorage.setItem('blitzwerk_vehicle', JSON.stringify(vehicle));
                   const vehicleStr = `${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.color})`;
-                  updateJob({ 
-                    status: 'searching', 
-                    issueType: selectedIssue, 
-                    location: locationStr, 
+                  updateJob({
+                    status: 'searching',
+                    issueType: selectedIssue,
+                    location: locationStr,
                     customerVehicle: vehicleStr,
                     customerName: user?.fullName || ''
                   });
@@ -655,8 +655,8 @@ function IssueCard({ icon, title, value, selected, onClick }: {
     <button
       onClick={onClick}
       className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all duration-300 ${selected
-          ? 'border-brand bg-brand/5 shadow-md scale-[1.02]'
-          : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
+        ? 'border-brand bg-brand/5 shadow-md scale-[1.02]'
+        : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
         }`}
     >
       <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-colors ${selected ? 'bg-brand text-white' : 'bg-slate-100 text-slate-600'

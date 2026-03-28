@@ -29,7 +29,7 @@ export default function Navbar() {
         <div className="flex items-center gap-1.5 sm:gap-3">
           {user ? (
             <div className="flex items-center gap-4">
-              <Link 
+              <Link
                 to={user.accountType === 'Customer' ? '/customer-dashboard' : '/helper-dashboard'}
                 className="hidden sm:flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-brand transition-colors p-1 pr-3 rounded-full hover:bg-slate-50"
               >

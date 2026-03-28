@@ -100,7 +100,7 @@ export default function CreateAccount() {
         full_name: formData.fullName,
         role: accountType === 'Customer' ? 'CUSTOMER' : 'HELPER',
         selected_services:
-          accountType === 'Helper' ? selectedServices.join(', ') : null,
+          accountType === 'Helper' ? selectedServices : null,
       });
 
       if (profileError) {

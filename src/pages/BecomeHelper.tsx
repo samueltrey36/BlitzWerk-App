@@ -76,7 +76,7 @@ export default function BecomeHelper() {
     return () => {
       if (watchId) navigator.geolocation.clearWatch(watchId);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
   const calculateDistance = () => {
@@ -88,10 +88,10 @@ export default function BecomeHelper() {
     const R = 3958.8; // miles
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const dist = R * c;
     return dist < 0.1 ? "0.1" : dist.toFixed(1);
   };
@@ -100,31 +100,31 @@ export default function BecomeHelper() {
     if (job.status === 'searching') setState('INCOMING_REQUEST');
     else setState('SEARCHING');
   };
-  
+
   const handleAccept = () => {
     const distStr = calculateDistance();
     const estEta = distStr ? Math.max(1, Math.ceil(parseFloat(distStr) * 3)) : 8;
-    updateJob({ 
-      status: 'pending_confirmation', 
-      eta: estEta, 
+    updateJob({
+      status: 'pending_confirmation',
+      eta: estEta,
       price: 45,
       helperName: user?.fullName || ''
     });
     setState('WAITING_CONFIRMATION');
   };
-  
+
   const handleDecline = () => setState('SEARCHING');
-  
+
   const handleArrived = () => {
     updateJob({ status: 'arrived' });
     setState('JOB_IN_PROGRESS');
   };
-  
+
   const handleComplete = () => {
     updateJob({ status: 'completed' });
     setState('JOB_COMPLETE');
   };
-  
+
   const handleBackOnline = () => {
     resetJob();
     setState('SEARCHING');
@@ -142,38 +142,38 @@ export default function BecomeHelper() {
         <div className="w-full h-full bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] [background-size:24px_24px] bg-gray-100 opacity-80"></div>
         {/* Simple map street lines simulation */}
         <div className="absolute inset-0 opacity-20 transition-opacity duration-1000 ease-in-out">
-           <div className="absolute top-[30%] left-0 right-0 h-4 bg-gray-400 rotate-12 origin-left"></div>
-           <div className="absolute top-0 bottom-0 left-[40%] w-6 bg-gray-400 -rotate-12 origin-top"></div>
-           <div className="absolute top-[60%] left-0 right-0 h-3 bg-gray-300 -rotate-3 origin-right"></div>
+          <div className="absolute top-[30%] left-0 right-0 h-4 bg-gray-400 rotate-12 origin-left"></div>
+          <div className="absolute top-0 bottom-0 left-[40%] w-6 bg-gray-400 -rotate-12 origin-top"></div>
+          <div className="absolute top-[60%] left-0 right-0 h-3 bg-gray-300 -rotate-3 origin-right"></div>
         </div>
-        
+
         {/* Map Elements based on state */}
         {state === 'SEARCHING' && (
-           <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2">
-             <div className="relative">
-                <div className="w-20 h-20 bg-brand/30 rounded-full animate-ping absolute -top-10 -left-10"></div>
-                <div className="w-4 h-4 bg-brand rounded-full absolute -top-2 -left-2 shadow-lg border-2 border-white"></div>
-             </div>
-           </div>
+          <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2">
+            <div className="relative">
+              <div className="w-20 h-20 bg-brand/30 rounded-full animate-ping absolute -top-10 -left-10"></div>
+              <div className="w-4 h-4 bg-brand rounded-full absolute -top-2 -left-2 shadow-lg border-2 border-white"></div>
+            </div>
+          </div>
         )}
 
         {/* Approximate area during incoming request */}
         {(state === 'INCOMING_REQUEST' || state === 'WAITING_CONFIRMATION') && (
-           <div className="absolute top-[45%] left-[55%] -translate-x-1/2 -translate-y-1/2 animate-in fade-in duration-500">
-             <div className="w-48 h-48 bg-brand/15 rounded-full animate-pulse border-2 border-brand/20 backdrop-blur-sm"></div>
-           </div>
+          <div className="absolute top-[45%] left-[55%] -translate-x-1/2 -translate-y-1/2 animate-in fade-in duration-500">
+            <div className="w-48 h-48 bg-brand/15 rounded-full animate-pulse border-2 border-brand/20 backdrop-blur-sm"></div>
+          </div>
         )}
 
         {/* Exact map pin after accepting */}
         {(state === 'JOB_ACCEPTED' || state === 'JOB_IN_PROGRESS') && (
-           <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 z-0 animate-in zoom-in fade-in duration-500">
-             <div className="relative">
-                <div className="w-10 h-10 flex items-center justify-center bg-gray-900 rounded-full shadow-2xl border-2 border-white absolute -top-5 -left-5">
-                  <MapPin className="w-5 h-5 text-white fill-current" />
-                </div>
-                <div className="w-20 h-20 bg-gray-900/10 rounded-full absolute -top-10 -left-10 animate-ping"></div>
-             </div>
-           </div>
+          <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 z-0 animate-in zoom-in fade-in duration-500">
+            <div className="relative">
+              <div className="w-10 h-10 flex items-center justify-center bg-gray-900 rounded-full shadow-2xl border-2 border-white absolute -top-5 -left-5">
+                <MapPin className="w-5 h-5 text-white fill-current" />
+              </div>
+              <div className="w-20 h-20 bg-gray-900/10 rounded-full absolute -top-10 -left-10 animate-ping"></div>
+            </div>
+          </div>
         )}
       </div>
 
@@ -191,7 +191,7 @@ export default function BecomeHelper() {
       <div className="relative z-10 flex-1 flex flex-col justify-end p-4 pb-8 sm:p-6 sm:pb-10 max-w-md mx-auto w-full">
         {/* Container for the cards with staggered animations */}
         <div className="bg-white rounded-[2rem] shadow-2xl p-6 sm:p-8 w-full transform transition-all duration-300 ease-in-out translate-y-0 ring-1 ring-gray-900/5">
-          
+
           {/* OFFLINE STATE */}
           {state === 'OFFLINE' && (
             <div className="text-center space-y-8 py-2 animate-in fade-in duration-300">
@@ -202,7 +202,7 @@ export default function BecomeHelper() {
                 <h2 className="text-3xl font-bold text-gray-900 tracking-tight">You are offline</h2>
                 <p className="text-gray-500 text-base">Go online to start receiving assistance requests.</p>
               </div>
-              <button 
+              <button
                 onClick={handleGoOnline}
                 className="w-full py-4.5 px-4 bg-brand text-white rounded-2xl font-bold text-lg hover:bg-brand/90 transition-all shadow-xl shadow-brand/25 active:scale-[0.98] h-14"
               >
@@ -264,13 +264,13 @@ export default function BecomeHelper() {
               </div>
 
               <div className="flex space-x-3 pt-2">
-                <button 
+                <button
                   onClick={handleDecline}
                   className="flex-[0.4] h-14 bg-gray-100 text-gray-700 rounded-2xl font-bold text-base hover:bg-gray-200 transition-all active:scale-[0.98] border border-gray-200"
                 >
                   DECLINE
                 </button>
-                <button 
+                <button
                   onClick={handleAccept}
                   className="flex-[0.6] h-14 bg-brand text-white rounded-2xl font-bold text-lg flex items-center justify-center space-x-2 hover:bg-brand/90 transition-all shadow-xl shadow-brand/25 active:scale-[0.98]"
                 >
@@ -293,7 +293,7 @@ export default function BecomeHelper() {
                 <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Pending Confirmation</h2>
                 <p className="text-gray-500 text-base font-medium">Waiting for customer to confirm helper...</p>
               </div>
-              <button 
+              <button
                 onClick={handleCancelJob}
                 className="text-gray-500 rounded-2xl font-bold text-sm hover:text-gray-700 transition-all mt-4"
               >
@@ -309,24 +309,24 @@ export default function BecomeHelper() {
                 <Navigation className="w-10 h-10 fill-brand" />
               </div>
               <div className="space-y-2">
-                 <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Navigate to customer</h2>
-                 <p className="text-gray-600 font-medium">{job.location || '123 Main St, Springfield'} {calculateDistance() ? `• ${calculateDistance()} mi away` : ''}</p>
-              </div>
-              
-              <div className="bg-green-50 rounded-2xl p-4 flex items-center justify-between border border-green-100 text-left">
-                 <div>
-                   <p className="text-sm text-green-900 font-bold mb-0.5">Customer requested help!</p>
-                   <p className="text-xs text-green-700 font-medium">{job.customerName ? job.customerName.split(' ')[0] : 'The customer'} has been notified you are on the way.</p>
-                 </div>
+                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Navigate to customer</h2>
+                <p className="text-gray-600 font-medium">{job.location || '123 Main St, Springfield'} {calculateDistance() ? `• ${calculateDistance()} mi away` : ''}</p>
               </div>
 
-              <button 
+              <div className="bg-green-50 rounded-2xl p-4 flex items-center justify-between border border-green-100 text-left">
+                <div>
+                  <p className="text-sm text-green-900 font-bold mb-0.5">Customer requested help!</p>
+                  <p className="text-xs text-green-700 font-medium">{job.customerName ? job.customerName.split(' ')[0] : 'The customer'} has been notified you are on the way.</p>
+                </div>
+              </div>
+
+              <button
                 onClick={handleArrived}
                 className="w-full h-14 bg-gray-900 text-white rounded-2xl font-bold text-lg hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/20 active:scale-[0.98] mt-2"
               >
                 ARRIVED
               </button>
-              <button 
+              <button
                 onClick={handleCancelJob}
                 className="w-full py-3 text-gray-500 font-bold text-sm hover:text-gray-700 transition-all mt-2"
               >
@@ -341,28 +341,28 @@ export default function BecomeHelper() {
               <div className="relative w-24 h-24 mx-auto pt-2">
                 <div className="absolute inset-0 bg-blue-100 rounded-full animate-pulse [animation-duration:2s]"></div>
                 <div className="relative w-full h-full flex items-center justify-center text-blue-600 ring-4 ring-white rounded-full bg-blue-50 shadow-sm">
-                   <div className="space-y-1">
-                     <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
-                   </div>
+                  <div className="space-y-1">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
+                  </div>
                 </div>
               </div>
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Service in progress</h2>
                 <p className="text-gray-600 font-medium">{job.issueType ? getIssueLabel(job.issueType) : 'Service'} for {job.customerName ? job.customerName.split(' ')[0] : 'the customer'}.</p>
               </div>
-              
+
               <div className="text-sm text-left bg-gray-50 p-4 rounded-2xl text-gray-600 border border-gray-100 font-medium leading-relaxed">
                 <span className="font-bold text-gray-900">Safety reminder:</span> Ensure you and the customer are safely away from traffic while working.
               </div>
 
-              <button 
+              <button
                 onClick={handleComplete}
                 className="w-full h-14 bg-brand text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-2 hover:bg-brand/90 transition-all shadow-xl shadow-brand/25 active:scale-[0.98] mt-2"
               >
                 <CheckCircle className="w-6 h-6" />
                 <span>COMPLETE JOB</span>
               </button>
-              <button 
+              <button
                 onClick={handleCancelJob}
                 className="w-full py-3 text-gray-500 font-bold text-sm hover:bg-gray-100 rounded-xl transition-all mt-2"
               >
@@ -382,7 +382,7 @@ export default function BecomeHelper() {
                 <h2 className="text-3xl font-black text-gray-900 tracking-tight">Great work!</h2>
                 <p className="text-gray-500 font-medium">Job completed successfully.</p>
               </div>
-              
+
               <div className="py-6 bg-gray-50 rounded-[2rem] mx-2 border border-gray-100 shadow-inner">
                 <p className="text-sm text-gray-400 uppercase tracking-widest font-black mb-1">Total Earnings</p>
                 <div className="flex items-start justify-center text-green-600">
@@ -392,7 +392,7 @@ export default function BecomeHelper() {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={handleBackOnline}
                 className="w-full h-14 bg-gray-900 text-white rounded-2xl font-bold text-lg hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/20 active:scale-[0.98] mt-2"
               >
