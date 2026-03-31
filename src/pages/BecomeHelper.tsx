@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { MapPin, Navigation, DollarSign, CheckCircle, Loader2, Signal, Clock } from "lucide-react";
 import { useJobStore } from "../lib/jobStore";
 import { useAuth } from "../lib/authStore";
+import { Navigate } from "react-router-dom";
 
 type HelperState =
   | 'OFFLINE'
@@ -16,6 +17,10 @@ export default function BecomeHelper() {
   const [state, setState] = useState<HelperState>('OFFLINE');
   const { job, updateJob, resetJob } = useJobStore();
   const { user } = useAuth();
+
+  if (user?.accountType === 'Helper' && !user.isApproved) {
+    return <Navigate to="/waiting-for-approval" replace />;
+  }
 
   const getIssueLabel = (val: string) => {
     switch (val) {

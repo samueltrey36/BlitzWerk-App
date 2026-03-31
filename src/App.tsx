@@ -7,6 +7,7 @@ import Login from "./pages/Login.tsx";
 import CreateAccount from "./pages/CreateAccount.tsx";
 import CustomerDashboard from "./pages/CustomerDashboard.tsx";
 import HelperDashboard from "./pages/HelperDashboard.tsx";
+import WaitingForApproval from "./pages/WaitingForApproval.tsx";
 import { JobProvider } from "./lib/jobStore.tsx";
 import { AuthProvider } from "./lib/authStore.tsx";
 
@@ -24,6 +25,7 @@ export default function App() {
               <Route path="create-account" element={<CreateAccount />} />
               <Route path="customer-dashboard" element={<CustomerDashboard />} />
               <Route path="helper-dashboard" element={<HelperDashboard />} />
+              <Route path="waiting-for-approval" element={<WaitingForApproval />} />
             </Route>
           </Routes>
         </BrowserRouter>

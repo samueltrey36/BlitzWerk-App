@@ -10,6 +10,10 @@ export default function HelperDashboard() {
   if (!user || user.accountType !== 'Helper') {
     return <Navigate to="/login" replace />;
   }
+  
+  if (!user.isApproved) {
+    return <Navigate to="/waiting-for-approval" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 pt-24 pb-12 sm:px-6 lg:px-8">

@@ -101,6 +101,7 @@ export default function CreateAccount() {
         role: accountType === 'Customer' ? 'CUSTOMER' : 'HELPER',
         selected_services:
           accountType === 'Helper' ? selectedServices : null,
+        is_approved: false, // New helpers default to unapproved
       });
 
       if (profileError) {
@@ -115,6 +116,7 @@ export default function CreateAccount() {
         phone: formData.phone,
         accountType,
         selectedServices: accountType === 'Helper' ? selectedServices : [],
+        isApproved: false,
       });
 
       setIsSuccess(true);
@@ -123,13 +125,11 @@ export default function CreateAccount() {
       let targetRoute =
         accountType === 'Customer' ? '/customer-dashboard' : '/helper-dashboard';
 
-      const flowReturnTo = sessionStorage.getItem('flowReturnTo');
-
-      if (flowReturnTo) {
-        if (accountType === 'Customer' && flowReturnTo === '/get-help') {
-          targetRoute = flowReturnTo;
-        }
-        if (accountType === 'Helper' && flowReturnTo === '/become-helper') {
+      if (accountType === 'Helper') {
+        targetRoute = '/waiting-for-approval';
+      } else {
+        const flowReturnTo = sessionStorage.getItem('flowReturnTo');
+        if (flowReturnTo && flowReturnTo === '/get-help') {
           targetRoute = flowReturnTo;
         }
         sessionStorage.removeItem('flowReturnTo');

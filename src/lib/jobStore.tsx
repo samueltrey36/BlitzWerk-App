@@ -38,7 +38,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Poll backend for state updates
   useEffect(() => {
     mounted.current = true;
-    
+
     const fetchJob = async () => {
       try {
         const res = await fetch('/api/job');
@@ -66,7 +66,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateJob = async (updates: Partial<JobState>) => {
     // Optimistic update
     setJob((prev) => ({ ...prev, ...updates }));
-    
+
     // Push to backend
     try {
       await fetch('/api/job', {

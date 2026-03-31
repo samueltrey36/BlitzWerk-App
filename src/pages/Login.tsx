@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Zap, Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth, User } from '../lib/authStore';
+import { supabase } from '../lib/supabase';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,7 +13,7 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -22,35 +23,67 @@ export default function Login() {
     }
 
     setIsSubmitting(true);
-    // Simulate network request
-    setTimeout(() => {
-      setIsSubmitting(false);
-      
-      try {
-        const storedPayload = localStorage.getItem('blitzwerk_user');
-        if (storedPayload) {
-          const parsedUser = JSON.parse(storedPayload) as User;
-          
-          // Verify 'backend' response generic email matching loosely
-          if (parsedUser.email === email) {
-            login(parsedUser); // Sync React context state
-            let targetRoute = parsedUser.accountType === 'Customer' ? '/customer-dashboard' : '/helper-dashboard';
-            const flowReturnTo = sessionStorage.getItem('flowReturnTo');
-            if (flowReturnTo) {
-              if (parsedUser.accountType === 'Customer' && flowReturnTo === '/get-help') targetRoute = flowReturnTo;
-              if (parsedUser.accountType === 'Helper' && flowReturnTo === '/become-helper') targetRoute = flowReturnTo;
-              sessionStorage.removeItem('flowReturnTo');
-            }
-            navigate(targetRoute, { replace: true });
-            return;
+
+    try {
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (signInData.user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', signInData.user.id)
+          .single();
+
+        if (profileError) {
+          setError(profileError.message);
+          setIsSubmitting(false);
+          return;
+        }
+
+        const isHelper = profileData.role === 'HELPER';
+        const isApproved = profileData.is_approved === true;
+
+        login({
+          fullName: profileData.full_name,
+          email: profileData.email,
+          phone: profileData.phone,
+          accountType: isHelper ? 'Helper' : 'Customer',
+          selectedServices: profileData.selected_services || [],
+          isApproved,
+        });
+
+        // Determine target route
+        let targetRoute = isHelper ? '/helper-dashboard' : '/customer-dashboard';
+        
+        // Handle wait-for-approval block instantly
+        if (isHelper && !isApproved) {
+          targetRoute = '/waiting-for-approval';
+        } else {
+          // Normal flow returns
+          const flowReturnTo = sessionStorage.getItem('flowReturnTo');
+          if (flowReturnTo) {
+            if (!isHelper && flowReturnTo === '/get-help') targetRoute = flowReturnTo;
+            if (isHelper && flowReturnTo === '/become-helper') targetRoute = flowReturnTo;
+            sessionStorage.removeItem('flowReturnTo');
           }
         }
-        
-        setError('Invalid credentials or no locally saved account found.');
-      } catch (err) {
-        setError('Error reading user state.');
+
+        navigate(targetRoute, { replace: true });
       }
-    }, 1000);
+    } catch (err) {
+      setError('An unexpected error occurred during sign in.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

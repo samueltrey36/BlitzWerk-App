@@ -8,6 +8,7 @@ export interface User {
   phone: string;
   accountType: AccountType;
   selectedServices?: string[];
+  isApproved?: boolean;
 }
 
 interface AuthContextType {
