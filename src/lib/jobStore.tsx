@@ -89,7 +89,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .eq('status', 'searching')
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (data) {
         setJob(mapDbToJobState(data));
@@ -215,9 +215,19 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .from("jobs")
         .insert(insertPayloadDb)
         .select()
-        .single();
+        .maybeSingle();
 
-      console.log("[JobStore] insert result/error", { data, error });
+      console.log("[JobStore] insert result/error", {
+        data,
+        error: error ? {
+          name: error.name,
+          message: error.message,
+          code: (error as any).code,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        } : null,
+        insertPayloadDb,
+      });
 
       if (error) throw error;
 
@@ -237,7 +247,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .eq('id', currentId)
           .eq('status', 'searching')
           .select()
-          .single();
+          .maybeSingle();
 
         if (!data || error) {
           alert("This job was already accepted by someone else or canceled.");
@@ -252,7 +262,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .update(mapJobStateToDb(updates))
           .eq('id', currentId)
           .select()
-          .single();
+          .maybeSingle();
         if (data) setJob(mapDbToJobState(data));
       }
     }
