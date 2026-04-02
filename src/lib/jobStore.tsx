@@ -82,7 +82,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const fetchLatestJob = async () => {
       const current = jobRef.current;
       if (current.id && !['idle', 'canceled_by_customer', 'canceled_by_helper', 'completed'].includes(current.status)) return;
-      
+
       const { data } = await supabase
         .from('jobs')
         .select('*')
@@ -90,7 +90,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
-        
+
       if (data) {
         setJob(mapDbToJobState(data));
       }
@@ -99,29 +99,47 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     fetchLatestJob();
 
     // Supabase Realtime Subscription
-    const channel = supabase.channel('public:jobs')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, (payload) => {
-        const changedJob = payload.new as any;
-        if (!changedJob) return; // handles deletions if any
-        
-        setJob(currentJob => {
-          if (currentJob.id) {
-            if (currentJob.id === changedJob.id) {
-               return mapDbToJobState(changedJob);
+    const channel = supabase.channel("public:jobs")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "jobs" },
+        (payload) => {
+          const changedJob = payload.new as any;
+
+          console.log("[JobStore][Realtime] subscription received payload", {
+            eventType: payload.eventType,
+            schema: payload.schema,
+            table: payload.table,
+            newRowStatus: changedJob?.status,
+            newRowId: changedJob?.id,
+            newRowCustomerId: changedJob?.customer_id,
+          });
+
+          if (!changedJob) return; // handles deletions if any
+
+          setJob((currentJob) => {
+            if (currentJob.id) {
+              if (currentJob.id === changedJob.id) {
+                return mapDbToJobState(changedJob);
+              }
+
+              if (
+                ["idle", "canceled_by_customer", "canceled_by_helper", "completed"].includes(currentJob.status) &&
+                changedJob.status === "searching"
+              ) {
+                return mapDbToJobState(changedJob);
+              }
+
+              return currentJob;
+            } else {
+              if (changedJob.status === "searching") {
+                return mapDbToJobState(changedJob);
+              }
+              return currentJob;
             }
-            // If our tracked job is done, intercept new 'searching' jobs immediately
-            if (['idle', 'canceled_by_customer', 'canceled_by_helper', 'completed'].includes(currentJob.status) && changedJob.status === 'searching') {
-               return mapDbToJobState(changedJob);
-            }
-            return currentJob;
-          } else {
-             if (changedJob.status === 'searching') {
-               return mapDbToJobState(changedJob);
-             }
-             return currentJob;
-          }
-        });
-      })
+          });
+        }
+      )
       .subscribe();
 
     return () => {
@@ -130,70 +148,151 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   const updateJob = async (updates: Partial<JobState>) => {
+    console.log("[JobStore] updateJob called", {
+      updates,
+      currentJobId: jobRef.current.id,
+      currentJobStatus: jobRef.current.status,
+    });
     // Optimistic fallback for frontend sync
     setJob((prev) => ({ ...prev, ...updates }));
 
     const currentId = jobRef.current.id;
-
+    console.log("[JobStore] create-branch condition check", {
+      currentId,
+      updatesStatus: updates?.status,
+      willEnterCreateBranch: !currentId && updates?.status === "searching",
+    });
     if (!currentId && updates.status === 'searching') {
-       // Customer initiates new job
-       const { data: { user } } = await supabase.auth.getUser();
-       const newRow = mapJobStateToDb({ 
-         ...jobRef.current, 
-         ...updates,
-         customerId: user?.id 
-       });
-       
-       const { data, error } = await supabase.from('jobs').insert(newRow).select().single();
-       if (data) setJob(mapDbToJobState(data));
-       if (error) console.error("Failed to create job:", error);
+      console.log("[JobStore] create branch ENTERED", { currentId, updates });
+
+      const {
+        data: { user: existingUser },
+        error: userErr,
+      } = await supabase.auth.getUser();
+
+      console.log("[JobStore] auth.getUser result", {
+        hasUser: Boolean(existingUser?.id),
+        userId: existingUser?.id ?? null,
+        userErr,
+      });
+
+      let user = existingUser;
+
+      if (!user?.id) {
+        // Customer should NOT be forced through login/signup
+        // Silently create an anonymous session instead
+        const { error: anonErr } = await supabase.auth.signInAnonymously();
+
+        // minimal error logging if anonymous sign-in fails
+        if (anonErr) {
+          console.error("[GetHelp Insert] signInAnonymously failed", {
+            name: anonErr.name,
+            message: anonErr.message,
+          });
+        }
+
+        // Wait until auth state is applied so getUser() starts returning a user
+        const startedAt = Date.now();
+        while (!user?.id && Date.now() - startedAt < 5000) {
+          await new Promise((r) => setTimeout(r, 150));
+          const { data, error } = await supabase.auth.getUser();
+          // keep noise low; only update state
+          user = data?.user ?? null;
+          if (error) user = null;
+        }
+      }
+
+      if (!user?.id) {
+        const err = new Error("No authenticated user found; cannot create job row in public.jobs.");
+        console.error("[GetHelp Insert] insert error", err);
+        throw err;
+      }
+
+      const insertPayloadDb = mapJobStateToDb({
+        ...jobRef.current,
+        ...updates,
+        customerId: user.id,
+        helperId: null,
+        status: 'searching',
+      });
+
+      if (insertPayloadDb.customer_id === undefined) {
+        console.error('[GetHelp Insert] Missing customer_id in payload', insertPayloadDb);
+      }
+      if (insertPayloadDb.helper_id !== null) {
+        console.error('[GetHelp Insert] helper_id not null as required', insertPayloadDb);
+      }
+      if (insertPayloadDb.status !== 'searching') {
+        console.error("[GetHelp Insert] status not 'searching' as required", insertPayloadDb);
+      }
+
+      console.log("[JobStore] insert payload built", {
+        payload: insertPayloadDb,
+        required: {
+          customer_id: insertPayloadDb.customer_id,
+          helper_id: insertPayloadDb.helper_id,
+          status: insertPayloadDb.status,
+        },
+      });
+
+      const { data, error } = await supabase
+        .from("jobs")
+        .insert(insertPayloadDb)
+        .select()
+        .single();
+
+      console.log("[JobStore] insert result/error", { data, error });
+
+      if (error) throw error;
+
+      if (data) setJob(mapDbToJobState(data));
     } else if (currentId) {
-       // Update existing job
-       if (updates.status === 'pending_confirmation') {
-         // Race Condition Prevention: Ensure job is STILL searching before claiming
-         const { data: { user } } = await supabase.auth.getUser();
-         const updatePayload = mapJobStateToDb({
-           ...updates,
-           helperId: user?.id
-         });
-         
-         const { data, error } = await supabase.from('jobs')
-           .update(updatePayload)
-           .eq('id', currentId)
-           .eq('status', 'searching')
-           .select()
-           .single();
-           
-         if (!data || error) {
-           alert("This job was already accepted by someone else or canceled.");
-           // Re-fetch a different open job
-           setJob(defaultState);
-         } else {
-           setJob(mapDbToJobState(data));
-         }
-       } else {
-         // Standard status update
-         const { data } = await supabase.from('jobs')
-           .update(mapJobStateToDb(updates))
-           .eq('id', currentId)
-           .select()
-           .single();
-         if (data) setJob(mapDbToJobState(data));
-       }
+      // Update existing job
+      if (updates.status === 'pending_confirmation') {
+        // Race Condition Prevention: Ensure job is STILL searching before claiming
+        const { data: { user } } = await supabase.auth.getUser();
+        const updatePayload = mapJobStateToDb({
+          ...updates,
+          helperId: user?.id
+        });
+
+        const { data, error } = await supabase.from('jobs')
+          .update(updatePayload)
+          .eq('id', currentId)
+          .eq('status', 'searching')
+          .select()
+          .single();
+
+        if (!data || error) {
+          alert("This job was already accepted by someone else or canceled.");
+          // Re-fetch a different open job
+          setJob(defaultState);
+        } else {
+          setJob(mapDbToJobState(data));
+        }
+      } else {
+        // Standard status update
+        const { data } = await supabase.from('jobs')
+          .update(mapJobStateToDb(updates))
+          .eq('id', currentId)
+          .select()
+          .single();
+        if (data) setJob(mapDbToJobState(data));
+      }
     }
   };
 
   const resetJob = async () => {
     const current = jobRef.current;
     if (current.id && !['idle', 'completed', 'canceled_by_customer', 'canceled_by_helper'].includes(current.status)) {
-       try {
-         // Generic cancel if abruptly cleared without proper status update
-         // If called from BecomeHelper, it implies helper bailed. If from GetHelp, customer bailed.
-         // We'll just leave it as canceled_by_customer since it's the safest generic terminal state if not handled explicitly.
-         await supabase.from('jobs')
-           .update(mapJobStateToDb({ status: 'canceled_by_customer' }))
-           .eq('id', current.id);
-       } catch(e) {}
+      try {
+        // Generic cancel if abruptly cleared without proper status update
+        // If called from BecomeHelper, it implies helper bailed. If from GetHelp, customer bailed.
+        // We'll just leave it as canceled_by_customer since it's the safest generic terminal state if not handled explicitly.
+        await supabase.from('jobs')
+          .update(mapJobStateToDb({ status: 'canceled_by_customer' }))
+          .eq('id', current.id);
+      } catch (e) { }
     }
     setJob(defaultState);
   };

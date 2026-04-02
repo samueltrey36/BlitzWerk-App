@@ -293,8 +293,16 @@ export default function GetHelp() {
               <button
                 disabled={!vehicle.make || !vehicle.model || !vehicle.year || !vehicle.color}
                 onClick={() => {
+                  console.log("[GetHelp] Request Help clicked - submitting", {
+                    selectedIssue,
+                    locationStr,
+                    vehicle,
+                    customerName: user?.fullName || "",
+                  });
+
                   localStorage.setItem('blitzwerk_vehicle', JSON.stringify(vehicle));
                   const vehicleStr = `${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.color})`;
+
                   updateJob({
                     status: 'searching',
                     issueType: selectedIssue,
