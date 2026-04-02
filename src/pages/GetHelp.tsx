@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { Loader2, MapPin, Wrench, Zap, Fuel, Truck, CheckCircle2, Navigation, Clock, CreditCard, ChevronRight, ShieldCheck, Lock, Smartphone } from "lucide-react";
 import { useJobStore } from "../lib/jobStore";
 import { useAuth } from "../lib/authStore";
@@ -8,6 +8,10 @@ export default function GetHelp() {
   const navigate = useNavigate();
   const { job, updateJob, resetJob } = useJobStore();
   const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   // Steps: 1: Issue, 2: Location, 3: Vehicle, 4: Searching, 5: Match, 6: Payment, 7: Tracking, 8: Complete
   const [step, setStep] = useState(1);

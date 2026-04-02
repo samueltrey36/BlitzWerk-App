@@ -179,30 +179,6 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       let user = existingUser;
 
       if (!user?.id) {
-        // Customer should NOT be forced through login/signup
-        // Silently create an anonymous session instead
-        const { error: anonErr } = await supabase.auth.signInAnonymously();
-
-        // minimal error logging if anonymous sign-in fails
-        if (anonErr) {
-          console.error("[GetHelp Insert] signInAnonymously failed", {
-            name: anonErr.name,
-            message: anonErr.message,
-          });
-        }
-
-        // Wait until auth state is applied so getUser() starts returning a user
-        const startedAt = Date.now();
-        while (!user?.id && Date.now() - startedAt < 5000) {
-          await new Promise((r) => setTimeout(r, 150));
-          const { data, error } = await supabase.auth.getUser();
-          // keep noise low; only update state
-          user = data?.user ?? null;
-          if (error) user = null;
-        }
-      }
-
-      if (!user?.id) {
         const err = new Error("No authenticated user found; cannot create job row in public.jobs.");
         console.error("[GetHelp Insert] insert error", err);
         throw err;
