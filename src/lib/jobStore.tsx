@@ -245,7 +245,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const { data, error } = await supabase.from('jobs')
           .update(updatePayload)
           .eq('id', currentId)
-          .eq('status', 'searching')
+          .eq('status', 'pending_confirmation')
           .select()
           .maybeSingle();
 
