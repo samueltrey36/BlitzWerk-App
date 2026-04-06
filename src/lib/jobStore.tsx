@@ -157,13 +157,26 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setJob((prev) => ({ ...prev, ...updates }));
 
     const currentId = jobRef.current.id;
+    const updatesStatus = updates?.status;
+
     console.log("[JobStore] create-branch condition check", {
       currentId,
-      updatesStatus: updates?.status,
-      willEnterCreateBranch: !currentId && updates?.status === "searching",
+      updatesStatus,
+      willEnterCreateBranch: !currentId && updatesStatus === "searching",
     });
-    if (!currentId && updates.status === 'searching') {
+
+    if (!currentId) {
+      if (updatesStatus !== "searching") {
+        console.error("[JobStore] Missing currentId; skipping job update until create conditions are met", {
+          currentId,
+          updates,
+        });
+        return; // IMPORTANT: prevents fallthrough into update/select with undefined id
+      }
+
       console.log("[JobStore] create branch ENTERED", { currentId, updates });
+
+      // (keep the rest of your create-branch code EXACTLY the same below)
 
       const {
         data: { user: existingUser },
@@ -236,12 +249,26 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Update existing job
       if (updates.status === 'pending_confirmation') {
         // Race Condition Prevention: Ensure job is STILL searching before claiming
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: userErr } = await supabase.auth.getUser();
+
+        if (userErr || !user) {
+          console.error("[JobStore] No authenticated user for jobs update", { userErr });
+          alert("You must be logged in to update jobs.");
+          return;
+        }
+
         const updatePayload = mapJobStateToDb({
           ...updates,
-          helperId: user?.id
+          helperId: user.id
         });
-
+        if (!currentId) {
+          // We should have taken the create-branch instead.
+          console.error("[JobStore] update skipped: missing currentId", {
+            currentId,
+            updates,
+          });
+          return;
+        }
         const { data, error } = await supabase.from('jobs')
           .update(updatePayload)
           .eq('id', currentId)

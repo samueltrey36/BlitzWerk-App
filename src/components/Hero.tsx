@@ -71,7 +71,7 @@ export default function Hero() {
           >
             <div className="absolute inset-0 bg-slate-200 rounded-[40px] overflow-hidden shadow-2xl border-8 border-white group">
               <img 
-                src="https://images.unsplash.com/photo-1605389445171-ec641527ef94?q=80&w=1200&auto=format&fit=crop" 
+                src="/hero_tow_truck.png" 
                 alt="Roadside emergency assistance" 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
               />
