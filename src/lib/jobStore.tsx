@@ -106,15 +106,6 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         (payload) => {
           const changedJob = payload.new as any;
 
-          console.log("[JobStore][Realtime] subscription received payload", {
-            eventType: payload.eventType,
-            schema: payload.schema,
-            table: payload.table,
-            newRowStatus: changedJob?.status,
-            newRowId: changedJob?.id,
-            newRowCustomerId: changedJob?.customer_id,
-          });
-
           if (!changedJob) return; // handles deletions if any
 
           setJob((currentJob) => {
@@ -148,80 +139,38 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   const updateJob = async (updates: Partial<JobState>) => {
-    console.log("[JobStore] updateJob called", {
-      updates,
-      currentJobId: jobRef.current.id,
-      currentJobStatus: jobRef.current.status,
-    });
-    // Optimistic fallback for frontend sync
-    setJob((prev) => ({ ...prev, ...updates }));
-
     const currentId = jobRef.current.id;
-    const updatesStatus = updates?.status;
 
-    console.log("[JobStore] create-branch condition check", {
-      currentId,
-      updatesStatus,
-      willEnterCreateBranch: !currentId && updatesStatus === "searching",
-    });
-
+    // --- 1. CREATE JOB (Customer) ---
     if (!currentId) {
-      if (updatesStatus !== "searching") {
-        console.error("[JobStore] Missing currentId; skipping job update until create conditions are met", {
-          currentId,
-          updates,
+      if (updates.status !== "searching") {
+        setJob((prev) => {
+          const nextState = { ...prev, ...updates };
+          jobRef.current = nextState;
+          return nextState;
         });
-        return; // IMPORTANT: prevents fallthrough into update/select with undefined id
+        return; // Optimistic local fallback
       }
 
-      console.log("[JobStore] create branch ENTERED", { currentId, updates });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) throw new Error("No authenticated user");
 
-      // (keep the rest of your create-branch code EXACTLY the same below)
-
-      const {
-        data: { user: existingUser },
-        error: userErr,
-      } = await supabase.auth.getUser();
-
-      console.log("[JobStore] auth.getUser result", {
-        hasUser: Boolean(existingUser?.id),
-        userId: existingUser?.id ?? null,
-        userErr,
-      });
-
-      let user = existingUser;
-
-      if (!user?.id) {
-        const err = new Error("No authenticated user found; cannot create job row in public.jobs.");
-        console.error("[GetHelp Insert] insert error", err);
-        throw err;
-      }
-
-      const insertPayloadDb = mapJobStateToDb({
-        ...jobRef.current,
-        ...updates,
-        customerId: user.id,
-        helperId: null,
+      // Safe creation payload (only customer fields + searching status)
+      const insertPayloadDb = {
+        customer_id: user.id,
         status: 'searching',
-      });
+        issue_type: updates.issueType || jobRef.current.issueType,
+        location: updates.location || jobRef.current.location,
+        eta: updates.eta || jobRef.current.eta,
+        price: updates.price || jobRef.current.price,
+        customer_vehicle: updates.customerVehicle || jobRef.current.customerVehicle,
+        customer_name: updates.customerName || jobRef.current.customerName,
+      };
 
-      if (insertPayloadDb.customer_id === undefined) {
-        console.error('[GetHelp Insert] Missing customer_id in payload', insertPayloadDb);
-      }
-      if (insertPayloadDb.helper_id !== null) {
-        console.error('[GetHelp Insert] helper_id not null as required', insertPayloadDb);
-      }
-      if (insertPayloadDb.status !== 'searching') {
-        console.error("[GetHelp Insert] status not 'searching' as required", insertPayloadDb);
-      }
-
-      console.log("[JobStore] insert payload built", {
-        payload: insertPayloadDb,
-        required: {
-          customer_id: insertPayloadDb.customer_id,
-          helper_id: insertPayloadDb.helper_id,
-          status: insertPayloadDb.status,
-        },
+      setJob(prev => {
+        const nextState = { ...prev, ...updates, status: 'searching' as JobStatus };
+        jobRef.current = nextState;
+        return nextState;
       });
 
       const { data, error } = await supabase
@@ -230,69 +179,85 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .select()
         .maybeSingle();
 
-      console.log("[JobStore] insert result/error", {
-        data,
-        error: error ? {
-          name: error.name,
-          message: error.message,
-          code: (error as any).code,
-          details: (error as any).details,
-          hint: (error as any).hint,
-        } : null,
-        insertPayloadDb,
+      if (error) throw error;
+      if (data) setJob(mapDbToJobState(data));
+      return;
+    }
+
+    // --- 2. ACCEPT JOB (Helper Claim) ---
+    if (updates.status === 'pending_confirmation') {
+      if (jobRef.current.status !== 'searching') return; // Already claimed/claiming
+
+      // INSTANT SYNCHRONOUS LOCK: Prevents double-click execution bugs where the second click 
+      // executes while `await auth.getUser()` is pausing the first execution's thread.
+      jobRef.current.status = 'pending_confirmation';
+      setJob(prev => {
+        const nextState = { ...prev, status: 'pending_confirmation' as JobStatus };
+        return nextState;
       });
 
-      if (error) throw error;
-
-      if (data) setJob(mapDbToJobState(data));
-    } else if (currentId) {
-      // Update existing job
-      if (updates.status === 'pending_confirmation') {
-        // Race Condition Prevention: Ensure job is STILL searching before claiming
-        const { data: { user }, error: userErr } = await supabase.auth.getUser();
-
-        if (userErr || !user) {
-          console.error("[JobStore] No authenticated user for jobs update", { userErr });
-          alert("You must be logged in to update jobs.");
-          return;
-        }
-
-        const updatePayload = mapJobStateToDb({
-          ...updates,
-          helperId: user.id
-        });
-        if (!currentId) {
-          // We should have taken the create-branch instead.
-          console.error("[JobStore] update skipped: missing currentId", {
-            currentId,
-            updates,
-          });
-          return;
-        }
-        const { data, error } = await supabase.from('jobs')
-          .update(updatePayload)
-          .eq('id', currentId)
-          .eq('status', 'pending_confirmation')
-          .select()
-          .maybeSingle();
-
-        if (!data || error) {
-          alert("This job was already accepted by someone else or canceled.");
-          // Re-fetch a different open job
-          setJob(defaultState);
-        } else {
-          setJob(mapDbToJobState(data));
-        }
-      } else {
-        // Standard status update
-        const { data } = await supabase.from('jobs')
-          .update(mapJobStateToDb(updates))
-          .eq('id', currentId)
-          .select()
-          .maybeSingle();
-        if (data) setJob(mapDbToJobState(data));
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) {
+        // Rollback if auth fails to keep store accurate
+        jobRef.current.status = 'searching';
+        setJob(prev => ({ ...prev, status: 'searching' }));
+        return;
       }
+
+      // Atomic update - safe whitelist for claim fields only
+      const claimPayload = {
+        status: 'pending_confirmation',
+        helper_id: user.id,
+        helper_name: updates.helperName || '',
+        helper_vehicle: updates.helperVehicle || '',
+        helper_location: updates.helperLocation || ''
+      };
+
+      const { data, error } = await supabase.from('jobs')
+        .update(claimPayload)
+        .eq('id', currentId)
+        .eq('status', 'searching') // The ATOMIC check
+        .select()
+        .maybeSingle();
+
+      if (!data || error) {
+        alert("This job was already accepted by someone else or canceled.");
+        setJob(defaultState); // Re-fetch or reset
+      } else {
+        setJob(mapDbToJobState(data));
+      }
+      return;
     }
+
+    // --- 3. GENERIC ALLOWED UPDATE ---
+    // Prevent pushing unnecessary location updates if unclaimed
+    if (jobRef.current.status === 'searching' && Object.keys(updates).length === 1 && updates.helperLocation !== undefined) {
+      setJob((prev) => {
+        const nextState = { ...prev, helperLocation: updates.helperLocation };
+        jobRef.current = nextState;
+        return nextState;
+      });
+      return;
+    }
+
+    // Optimistic local update
+    setJob((prev) => {
+      const nextState = { ...prev, ...updates };
+      jobRef.current = nextState;
+      return nextState;
+    });
+
+    const updatePayload = mapJobStateToDb(updates);
+    if (Object.keys(updatePayload).length === 0) return;
+
+    // Only update specified fields based on the whitelist (mapJobStateToDb already handles filtering)
+    const { data } = await supabase.from('jobs')
+      .update(updatePayload)
+      .eq('id', currentId)
+      .select()
+      .maybeSingle();
+
+    if (data) setJob(mapDbToJobState(data));
   };
 
   const resetJob = async () => {
