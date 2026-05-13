@@ -1,57 +1,62 @@
-import { Zap, Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
+import { Truck, Mail, Phone, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-white py-20 border-t border-white/5">
+    <footer className="bg-slate-950 text-slate-400 py-16 border-t border-white/5">
       <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 lg:grid-cols-4 gap-12">
         <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white fill-white" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
+              <Truck className="w-6 h-6 text-white" />
             </div>
-            <span className="font-display font-bold text-xl tracking-tight text-white">BlitzWerk</span>
+            <span className="font-display font-bold text-2xl tracking-tight text-white">BlitzWerk</span>
           </div>
-          <p className="text-white/60 leading-relaxed">
-            Modern roadside assistance for the modern driver. Fast, reliable, and community-powered.
+          <p className="text-slate-400 leading-relaxed">
+            Dispatch Services For Carriers. We handle the paperwork, broker communication, and route planning so you can focus on driving.
           </p>
-          <div className="flex items-center gap-4">
-            {[Twitter, Facebook, Instagram, Linkedin].map((Icon, i) => (
-              <a key={i} href="#" className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-white/60 hover:text-brand hover:bg-white/10 transition-all">
-                <Icon className="w-5 h-5" />
-              </a>
-            ))}
-          </div>
         </div>
 
         <div className="space-y-6">
-          <h4 className="text-lg font-bold">Services</h4>
-          <ul className="space-y-4 text-white/60">
-            {["Flat Tires", "Jump Starts", "Fuel Delivery", "Towing", "Lockout Service"].map((item, i) => (
-              <li key={i}><a href="#" className="hover:text-brand transition-colors">{item}</a></li>
-            ))}
+          <h4 className="text-lg font-bold text-white">Services</h4>
+          <ul className="space-y-4">
+            <li><a href="/#services" className="hover:text-brand transition-colors">Load Booking</a></li>
+            <li><a href="/#services" className="hover:text-brand transition-colors">Rate Negotiation</a></li>
+            <li><a href="/#services" className="hover:text-brand transition-colors">Broker Communication</a></li>
+            <li><a href="/#services" className="hover:text-brand transition-colors">Route Planning</a></li>
+            <li><a href="/#services" className="hover:text-brand transition-colors">Paperwork Management</a></li>
           </ul>
         </div>
 
         <div className="space-y-6">
-          <h4 className="text-lg font-bold">Company</h4>
-          <ul className="space-y-4 text-white/60">
-            {["About Us", "Careers", "Press", "Blog", "Contact"].map((item, i) => (
-              <li key={i}><a href="#" className="hover:text-brand transition-colors">{item}</a></li>
-            ))}
+          <h4 className="text-lg font-bold text-white">Company</h4>
+          <ul className="space-y-4">
+            <li><a href="/#about" className="hover:text-brand transition-colors">About Us</a></li>
+            <li><Link to="/carrier-intake" className="hover:text-brand transition-colors">Carrier Intake</Link></li>
+            <li><Link to="/contact" className="hover:text-brand transition-colors">Contact</Link></li>
           </ul>
         </div>
 
         <div className="space-y-6">
-          <h4 className="text-lg font-bold">Legal</h4>
-          <ul className="space-y-4 text-white/60">
-            {["Terms of Service", "Privacy Policy", "Cookie Policy", "Helper Agreement"].map((item, i) => (
-              <li key={i}><a href="#" className="hover:text-brand transition-colors">{item}</a></li>
-            ))}
+          <h4 className="text-lg font-bold text-white">Contact</h4>
+          <ul className="space-y-4">
+            <li className="flex items-center gap-3">
+              <Phone className="w-5 h-5 text-brand" />
+              <a href="tel:8326574825" className="hover:text-white transition-colors">832-657-4825</a>
+            </li>
+            <li className="flex items-center gap-3">
+              <Mail className="w-5 h-5 text-brand" />
+              <a href="mailto:info@blitzwerk.com" className="hover:text-white transition-colors">info@blitzwerk.com</a>
+            </li>
+            <li className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-brand" />
+              <span>Nationwide Dispatch Support</span>
+            </li>
           </ul>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-4 mt-20 pt-8 border-t border-white/5 text-center text-white/40 text-sm">
-        © {new Date().getFullYear()} BlitzWerk Technologies Inc. All rights reserved.
+      <div className="max-w-7xl mx-auto px-4 mt-16 pt-8 border-t border-white/5 text-center text-slate-500 text-sm">
+        © {new Date().getFullYear()} BlitzWerk. All rights reserved.
       </div>
     </footer>
   );

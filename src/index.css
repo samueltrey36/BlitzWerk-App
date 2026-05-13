@@ -4,13 +4,15 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Montserrat", sans-serif;
-  --color-brand: #1e3a8a; /* Deep blue */
-  --color-surface: #f8fafc; /* Light gray */
+  --color-brand: #3b82f6; /* Electric blue */
+  --color-brand-dark: #2563eb;
+  --color-surface: #0f172a; /* Deep charcoal / slate 900 */
+  --color-surface-light: #1e293b; /* Slate 800 */
 }
 
 @layer base {
   body {
-    @apply font-sans bg-surface text-slate-900;
+    @apply font-sans bg-surface text-slate-100;
   }
   h1, h2, h3, h4 {
     @apply font-display;

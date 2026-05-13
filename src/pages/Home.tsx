@@ -1,15 +1,13 @@
 import Hero from "../components/Hero";
-import Benefits from "../components/Benefits";
-import TrustAndHelper from "../components/TrustAndHelper";
-import Comparison from "../components/Comparison";
+import Services from "../components/Services";
+import About from "../components/About";
 
 export default function Home() {
   return (
-    <>
+    <div className="bg-slate-950 min-h-screen">
       <Hero />
-      <Benefits />
-      <TrustAndHelper />
-      <Comparison />
-    </>
+      <Services />
+      <About />
+    </div>
   );
 }

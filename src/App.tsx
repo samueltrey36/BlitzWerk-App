@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./Layout.tsx";
 import Home from "./pages/Home.tsx";
+import CarrierIntake from "./pages/CarrierIntake.tsx";
+import Contact from "./pages/Contact.tsx";
 import GetHelp from "./pages/GetHelp.tsx";
 import BecomeHelper from "./pages/BecomeHelper.tsx";
 import Login from "./pages/Login.tsx";
@@ -18,7 +20,12 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
+              {/* New Trucking Dispatch Routes */}
               <Route index element={<Home />} />
+              <Route path="carrier-intake" element={<CarrierIntake />} />
+              <Route path="contact" element={<Contact />} />
+
+              {/* Legacy Roadside Assistance Routes (Kept for future use, but not actively linked) */}
               <Route path="get-help" element={<GetHelp />} />
               <Route path="become-helper" element={<BecomeHelper />} />
               <Route path="login" element={<Login />} />
@@ -33,5 +40,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-console.log('SUPABASE URL:', import.meta.env.VITE_SUPABASE_URL)
-console.log('SUPABASE KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY)
