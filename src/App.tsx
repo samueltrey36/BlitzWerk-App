@@ -10,6 +10,7 @@ import CreateAccount from "./pages/CreateAccount.tsx";
 import CustomerDashboard from "./pages/CustomerDashboard.tsx";
 import HelperDashboard from "./pages/HelperDashboard.tsx";
 import WaitingForApproval from "./pages/WaitingForApproval.tsx";
+import AdminDashboard from "./pages/AdminDashboard.tsx";
 import { JobProvider } from "./lib/jobStore.tsx";
 import { AuthProvider } from "./lib/authStore.tsx";
 
@@ -24,6 +25,7 @@ export default function App() {
               <Route index element={<Home />} />
               <Route path="carrier-intake" element={<CarrierIntake />} />
               <Route path="contact" element={<Contact />} />
+              <Route path="admin" element={<AdminDashboard />} />
 
               {/* Legacy Roadside Assistance Routes (Kept for future use, but not actively linked) */}
               <Route path="get-help" element={<GetHelp />} />

@@ -1,54 +1,94 @@
 import { motion } from "motion/react";
-import { ArrowRight, FileText } from "lucide-react";
+import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Hero() {
   return (
-    <div className="relative bg-slate-950 overflow-hidden pt-20">
-      {/* Background styling elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800 via-slate-950 to-slate-950"></div>
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+    <div className="relative bg-[#0B0F14] min-h-screen flex items-center pt-20 border-b border-slate-700/80 overflow-hidden">
       
-      <section className="relative pt-32 pb-32 px-4 z-10">
-        <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
+      {/* Background Layers */}
+      <div className="absolute inset-0 z-0">
+        {/* Layer 1: Charcoal Gradient Base */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0B0F14] via-[#0B0F14]/90 to-transparent"></div>
+        
+        {/* Layer 2: Asphalt Texture */}
+        <div className="absolute inset-0 bg-texture-asphalt opacity-30 mix-blend-multiply"></div>
+        
+        {/* Layer 3: Faint Map Lines */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-10 mix-blend-screen"
+          style={{ backgroundImage: "url('/texas_freight_map_realistic.png')" }}
+        ></div>
+        
+        {/* Layer 4: Truck Image on Right Side */}
+        <div className="absolute inset-y-0 right-0 w-full lg:w-[60%]">
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-[#0B0F14] z-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F14]/80 via-transparent to-transparent z-10"></div>
+          <div 
+            className="absolute inset-0 bg-cover bg-center brightness-110"
+            style={{ backgroundImage: "url('/hero_split_truck_bg.png')" }}
+          ></div>
+        </div>
+      </div>
+
+      <section className="relative z-10 w-full max-w-7xl mx-auto px-4">
+        <div className="max-w-[650px]">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-8 max-w-4xl"
+            className="space-y-6"
           >
-            <div className="inline-flex items-center gap-2 bg-brand/20 text-brand-dark font-black px-5 py-2 rounded-full text-sm uppercase tracking-wider border border-brand/30 shadow-sm backdrop-blur-sm mx-auto text-brand-100">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand"></span>
-              </span>
-              Top-Rated Nationwide Dispatch
+            {/* Eyebrow */}
+            <div className="text-brand font-industrial font-bold text-sm uppercase tracking-[0.3em]">
+              TEXAS REGIONAL FLATBED DISPATCH
             </div>
-            
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-extrabold tracking-tight text-white leading-[1.1]">
-              Reliable Truck Dispatch Services For <span className="text-brand">Owner-Operators</span> & Small Fleets
+
+            {/* Main headline */}
+            <h1 className="text-5xl md:text-6xl lg:text-[70px] font-industrial font-bold tracking-tight text-white leading-[1] uppercase">
+              Flatbed Dispatch Built For <span className="text-brand">Texas</span> Owner-Operators
             </h1>
-            
-            <p className="text-xl md:text-2xl text-slate-400 font-medium max-w-3xl mx-auto leading-relaxed">
-              We help carriers stay loaded with high-paying freight, broker communication, route planning, and dispatch support.
+
+            {/* Subheadline */}
+            <p className="text-base md:text-lg text-slate-400 font-medium max-w-[580px] leading-relaxed pt-2 pb-4">
+              We help flatbed owner-operators and small fleets secure consistent regional freight across Texas and surrounding freight corridors through broker communication, route planning, and dispatch support.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 pt-8 w-full max-w-xl mx-auto justify-center">
-              <Link to="/carrier-intake" className="bg-brand text-white text-lg font-bold px-8 py-4 rounded-xl shadow-[0_0_40px_-10px_rgba(59,130,246,0.6)] hover:bg-brand-dark hover:-translate-y-1 transition-all flex items-center justify-center gap-3 group active:scale-95 border border-blue-400/20">
-                Work With Us
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-5">
+              <Link 
+                to="/carrier-intake" 
+                className="bg-brand hover:bg-brand-dark text-white text-base md:text-lg font-industrial font-bold uppercase tracking-wider px-10 py-5 transition-colors border border-transparent shadow-[0_4px_15px_rgba(0,0,0,0.5)] text-center"
+              >
+                Submit Carrier Packet
               </Link>
-              <Link to="/carrier-intake" className="bg-slate-800 text-white text-lg font-bold px-8 py-4 rounded-xl shadow-xl hover:bg-slate-700 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 active:scale-95 border border-slate-700">
-                <FileText className="w-5 h-5" />
-                Submit Carrier Information
-              </Link>
+              <a 
+                href="#corridors" 
+                className="bg-transparent hover:bg-surface-light text-white text-base md:text-lg font-industrial font-bold uppercase tracking-wider px-10 py-5 transition-colors border-2 border-slate-600 text-center"
+              >
+                View Freight Corridors
+              </a>
             </div>
+
+            {/* Operational Indicators */}
+            <div className="flex flex-wrap gap-x-6 gap-y-3 pt-8">
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-brand" />
+                <span className="text-slate-300 font-industrial font-bold text-sm uppercase tracking-wide">Texas Regional Lanes</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-brand" />
+                <span className="text-slate-300 font-industrial font-bold text-sm uppercase tracking-wide">Flatbed & Step Deck</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-brand" />
+                <span className="text-slate-300 font-industrial font-bold text-sm uppercase tracking-wide">Owner-Operators & Small Fleets</span>
+              </div>
+            </div>
+
           </motion.div>
         </div>
       </section>
-      
-      {/* Decorative divider */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
     </div>
   );
 }
