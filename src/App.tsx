@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Layout from "./Layout.tsx";
 import Home from "./pages/Home.tsx";
 import CarrierIntake from "./pages/CarrierIntake.tsx";
@@ -11,16 +11,10 @@ import CustomerDashboard from "./pages/CustomerDashboard.tsx";
 import HelperDashboard from "./pages/HelperDashboard.tsx";
 import WaitingForApproval from "./pages/WaitingForApproval.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
-import { JobProvider } from "./lib/jobStore.tsx";
-import { AuthProvider } from "./lib/authStore.tsx";
-
 export default function App() {
   return (
-    <AuthProvider>
-      <JobProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Layout />}>
+    <Routes>
+      <Route path="/" element={<Layout />}>
               {/* New Trucking Dispatch Routes */}
               <Route index element={<Home />} />
               <Route path="carrier-intake" element={<CarrierIntake />} />
@@ -36,9 +30,6 @@ export default function App() {
               <Route path="helper-dashboard" element={<HelperDashboard />} />
               <Route path="waiting-for-approval" element={<WaitingForApproval />} />
             </Route>
-          </Routes>
-        </BrowserRouter>
-      </JobProvider>
-    </AuthProvider>
+    </Routes>
   );
 }

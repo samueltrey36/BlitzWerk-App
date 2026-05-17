@@ -26,6 +26,9 @@ export default function Navbar() {
           <Link to="/carrier-intake" className="bg-surface-light hover:bg-brand-dark text-white px-6 py-3 font-industrial font-bold uppercase tracking-wider transition-colors border-2 border-brand text-sm shadow-[0_4px_10px_rgba(0,0,0,0.3)] flex items-center justify-center">
             Submit Carrier Packet
           </Link>
+          <Link to="/login" className="text-[10px] font-industrial font-bold uppercase tracking-widest text-slate-500 hover:text-brand transition-colors ml-2">
+            Login
+          </Link>
         </div>
       </div>
     </nav>

@@ -41,7 +41,7 @@ export default function Login() {
           .from('profiles')
           .select('*')
           .eq('id', signInData.user.id)
-          .single();
+          .maybeSingle();
 
         if (profileError) {
           setError(profileError.message);
@@ -49,32 +49,34 @@ export default function Login() {
           return;
         }
 
-        const isHelper = profileData.role === 'HELPER';
-        const isApproved = profileData.is_approved === true;
+        const profile = profileData || {
+          role: 'ADMIN',
+          is_approved: true,
+          full_name: 'Admin',
+          email: signInData.user.email,
+          phone: '',
+          selected_services: []
+        };
+
+        const isHelper = profile.role === 'HELPER';
+        const isApproved = profile.is_approved === true;
 
         login({
-          fullName: profileData.full_name,
-          email: profileData.email,
-          phone: profileData.phone,
+          fullName: profile.full_name || 'Admin',
+          email: profile.email || signInData.user.email || '',
+          phone: profile.phone || '',
           accountType: isHelper ? 'Helper' : 'Customer',
-          selectedServices: profileData.selected_services || [],
+          selectedServices: profile.selected_services || [],
           isApproved,
         });
 
-        // Determine target route
-        let targetRoute = isHelper ? '/helper-dashboard' : '/customer-dashboard';
+        // Route to the new admin dashboard
+        let targetRoute = '/admin';
         
-        // Handle wait-for-approval block instantly
-        if (isHelper && !isApproved) {
-          targetRoute = '/waiting-for-approval';
-        } else {
-          // Normal flow returns
-          const flowReturnTo = sessionStorage.getItem('flowReturnTo');
-          if (flowReturnTo) {
-            if (!isHelper && flowReturnTo === '/get-help') targetRoute = flowReturnTo;
-            if (isHelper && flowReturnTo === '/become-helper') targetRoute = flowReturnTo;
-            sessionStorage.removeItem('flowReturnTo');
-          }
+        const flowReturnTo = sessionStorage.getItem('flowReturnTo');
+        if (flowReturnTo) {
+          targetRoute = flowReturnTo;
+          sessionStorage.removeItem('flowReturnTo');
         }
 
         navigate(targetRoute, { replace: true });

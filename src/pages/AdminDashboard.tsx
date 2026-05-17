@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Truck, MessageSquare, Shield, AlertCircle } from 'lucide-react';
+import { Truck, MessageSquare, Shield, AlertCircle, FileText, Download } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface CarrierSubmission {
   id: string;
@@ -14,6 +15,10 @@ interface CarrierSubmission {
   home_base: string;
   created_at: string;
   status: string;
+  w9_url?: string;
+  insurance_url?: string;
+  mc_authority_url?: string;
+  optional_safety_packet_url?: string;
 }
 
 interface ContactMessage {
@@ -27,6 +32,8 @@ interface ContactMessage {
 }
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [activeTab, setActiveTab] = useState<'carriers' | 'messages'>('carriers');
   const [carriers, setCarriers] = useState<CarrierSubmission[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
@@ -34,16 +41,56 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login', { replace: true });
+        return;
+      }
+      setIsCheckingAuth(false);
+      fetchData();
+      setupRealtime();
+    };
+    
+    checkAuth();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        navigate('/login', { replace: true });
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+      supabase.removeAllChannels();
+    };
+  }, [navigate]);
+
+  const setupRealtime = () => {
+    supabase.channel('carrier_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'carrier_intake_submissions' }, () => {
+        fetchData();
+      })
+      .subscribe();
+
+    supabase.channel('message_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contact_messages' }, () => {
+        fetchData();
+      })
+      .subscribe();
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const [carrierRes, messageRes] = await Promise.all([
-        supabase.from('carrier_intake_submissions').select('id, company_name, owner_name, email, phone, mc_number, dot_number, equipment_type, home_base, created_at, status').order('created_at', { ascending: false }),
-        supabase.from('contact_messages').select('id, full_name, email, company_name, message, status, created_at').order('created_at', { ascending: false })
+        supabase.from('carrier_intake_submissions')
+          .select('id, company_name, owner_name, email, phone, mc_number, dot_number, equipment_type, home_base, created_at, status, w9_url, insurance_url, mc_authority_url, optional_safety_packet_url')
+          .order('created_at', { ascending: false }),
+        supabase.from('contact_messages')
+          .select('id, full_name, email, company_name, message, status, created_at')
+          .order('created_at', { ascending: false })
       ]);
 
       if (carrierRes.error) throw carrierRes.error;
@@ -61,7 +108,6 @@ export default function AdminDashboard() {
 
   const updateCarrierStatus = async (id: string, newStatus: string) => {
     try {
-      // Optimistic update
       setCarriers(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
       
       const { error } = await supabase
@@ -70,7 +116,6 @@ export default function AdminDashboard() {
         .eq('id', id);
       
       if (error) {
-        // Revert on error
         fetchData();
         throw error;
       }
@@ -82,7 +127,6 @@ export default function AdminDashboard() {
 
   const updateMessageStatus = async (id: string, newStatus: string) => {
     try {
-      // Optimistic update
       setMessages(prev => prev.map(m => m.id === id ? { ...m, status: newStatus } : m));
 
       const { error } = await supabase
@@ -100,11 +144,39 @@ export default function AdminDashboard() {
     }
   };
 
+  const viewSecureDocument = async (url: string | undefined | null) => {
+    if (!url) return;
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('carrier-documents/');
+      if (pathParts.length < 2) {
+         throw new Error("Invalid document URL format");
+      }
+      const filePath = pathParts[1];
+      
+      const { data, error } = await supabase.storage
+        .from('carrier-documents')
+        .createSignedUrl(filePath, 60);
+        
+      if (error) throw error;
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+      }
+    } catch (err: any) {
+      console.error('Error generating signed URL:', err);
+      alert('Could not open document: ' + err.message);
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString(undefined, {
       year: 'numeric', month: 'short', day: 'numeric'
     });
   };
+
+  if (isCheckingAuth) {
+    return <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center text-brand">Verifying access...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pt-28 px-4 pb-20 font-sans">
@@ -150,7 +222,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {isLoading ? (
+        {isLoading && carriers.length === 0 && messages.length === 0 ? (
           <div className="text-center py-20 text-slate-400">Loading data...</div>
         ) : (
           <div className="bg-slate-900/50 border border-slate-800 rounded-none shadow-xl overflow-hidden">
@@ -163,13 +235,14 @@ export default function AdminDashboard() {
                       <th className="px-4 py-3 font-bold">Contact</th>
                       <th className="px-4 py-3 font-bold">MC / DOT</th>
                       <th className="px-4 py-3 font-bold">Equipment / Base</th>
+                      <th className="px-4 py-3 font-bold">Documents</th>
                       <th className="px-4 py-3 font-bold">Status</th>
                       <th className="px-4 py-3 font-bold">Date</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800">
                     {carriers.length === 0 ? (
-                      <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">No applications found.</td></tr>
+                      <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">No applications found.</td></tr>
                     ) : (
                       carriers.map(carrier => (
                         <tr key={carrier.id} className="hover:bg-slate-800/30 transition-colors">
@@ -190,8 +263,35 @@ export default function AdminDashboard() {
                             <div className="text-xs text-slate-400">{carrier.home_base}</div>
                           </td>
                           <td className="px-4 py-4">
+                            <div className="flex flex-col gap-1.5 text-xs">
+                              {carrier.w9_url && (
+                                <button onClick={() => viewSecureDocument(carrier.w9_url)} className="text-brand hover:text-brand-light hover:underline flex items-center gap-1 text-left w-max transition-colors">
+                                  <FileText className="w-3 h-3" /> W-9
+                                </button>
+                              )}
+                              {carrier.insurance_url && (
+                                <button onClick={() => viewSecureDocument(carrier.insurance_url)} className="text-brand hover:text-brand-light hover:underline flex items-center gap-1 text-left w-max transition-colors">
+                                  <FileText className="w-3 h-3" /> Insurance
+                                </button>
+                              )}
+                              {carrier.mc_authority_url && (
+                                <button onClick={() => viewSecureDocument(carrier.mc_authority_url)} className="text-brand hover:text-brand-light hover:underline flex items-center gap-1 text-left w-max transition-colors">
+                                  <FileText className="w-3 h-3" /> MC Auth
+                                </button>
+                              )}
+                              {carrier.optional_safety_packet_url && (
+                                <button onClick={() => viewSecureDocument(carrier.optional_safety_packet_url)} className="text-brand hover:text-brand-light hover:underline flex items-center gap-1 text-left w-max transition-colors">
+                                  <FileText className="w-3 h-3" /> Safety
+                                </button>
+                              )}
+                              {!carrier.w9_url && !carrier.insurance_url && !carrier.mc_authority_url && (
+                                <span className="text-slate-500 italic">No docs</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
                             <select 
-                              value={carrier.status}
+                              value={carrier.status || 'pending'}
                               onChange={(e) => updateCarrierStatus(carrier.id, e.target.value)}
                               className="bg-slate-950 border border-slate-700 text-xs font-bold uppercase rounded px-2 py-1.5 text-white focus:border-brand outline-none"
                             >
@@ -245,7 +345,7 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-4 py-4 align-top">
                             <select 
-                              value={msg.status}
+                              value={msg.status || 'unread'}
                               onChange={(e) => updateMessageStatus(msg.id, e.target.value)}
                               className="bg-slate-950 border border-slate-700 text-xs font-bold uppercase rounded px-2 py-1.5 text-white focus:border-brand outline-none"
                             >
