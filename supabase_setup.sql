@@ -209,3 +209,25 @@ CREATE POLICY "Allow authenticated deletions from carrier-documents"
 ON storage.objects 
 FOR DELETE 
 USING (bucket_id = 'carrier-documents' AND auth.role() = 'authenticated');
+
+
+-- =======================================================================================
+-- 6. ADMIN USER SETUP (SEED)
+-- =======================================================================================
+-- Run this AFTER you have manually signed up (or created the user in Auth dashboard)
+-- with the email 'treysamuel36@yahoo.com'. This will force-approve the account.
+DO $$ 
+DECLARE 
+  admin_user_id UUID;
+  target_email TEXT := 'treysamuel36@yahoo.com';
+BEGIN
+  SELECT id INTO admin_user_id FROM auth.users WHERE email = target_email;
+
+  IF admin_user_id IS NOT NULL THEN
+    INSERT INTO public.profiles (id, email, full_name, role, is_approved)
+    VALUES (admin_user_id, target_email, 'Admin User', 'ADMIN', true)
+    ON CONFLICT (id) DO UPDATE SET role = 'ADMIN', is_approved = true;
+  ELSE
+    RAISE NOTICE 'User with email % not found. Please sign up first.', target_email;
+  END IF;
+END $$;

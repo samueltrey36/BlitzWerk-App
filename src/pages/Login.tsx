@@ -108,17 +108,7 @@ export default function Login() {
         >
           Welcome back
         </motion.h2>
-        <motion.p
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-2 text-center text-sm text-slate-600"
-        >
-          Don't have an account?{' '}
-          <Link to="/create-account" className="font-medium text-brand hover:text-brand-light transition-colors">
-            Create an account
-          </Link>
-        </motion.p>
+        {/* Account creation is currently disabled for unauthorized users */}
       </div>
 
       <motion.div
