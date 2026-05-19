@@ -78,7 +78,7 @@ export default function Contact() {
                 <textarea required rows={5} className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all resize-none"></textarea>
               </div>
 
-              <button type="submit" className="bg-brand hover:bg-brand-dark text-white font-bold py-4 px-8 rounded-xl flex items-center justify-center gap-3 transition-all inline-flex">
+              <button type="submit" className="w-full sm:w-auto bg-brand hover:bg-brand-dark text-white font-bold py-4 px-8 rounded-xl flex items-center justify-center gap-3 transition-all inline-flex">
                 Send Message
                 <Send className="w-5 h-5" />
               </button>

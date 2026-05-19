@@ -58,17 +58,20 @@ CREATE TRIGGER update_carrier_intake_modtime
 ALTER TABLE carrier_intake_submissions ENABLE ROW LEVEL SECURITY;
 
 -- Allow anyone (public) to submit a new carrier packet
+DROP POLICY IF EXISTS "Allow public inserts for carrier intake" ON carrier_intake_submissions;
 CREATE POLICY "Allow public inserts for carrier intake" 
 ON carrier_intake_submissions 
 FOR INSERT 
 WITH CHECK (true);
 
 -- Only authenticated internal users/admins can read or update submissions
+DROP POLICY IF EXISTS "Allow authenticated reads for carrier intake" ON carrier_intake_submissions;
 CREATE POLICY "Allow authenticated reads for carrier intake" 
 ON carrier_intake_submissions 
 FOR SELECT 
 USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Allow authenticated updates for carrier intake" ON carrier_intake_submissions;
 CREATE POLICY "Allow authenticated updates for carrier intake" 
 ON carrier_intake_submissions 
 FOR UPDATE 
@@ -104,17 +107,20 @@ CREATE TRIGGER update_contact_messages_modtime
 ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
 
 -- Allow anyone (public) to submit a contact form
+DROP POLICY IF EXISTS "Allow public inserts for contact messages" ON contact_messages;
 CREATE POLICY "Allow public inserts for contact messages" 
 ON contact_messages 
 FOR INSERT 
 WITH CHECK (true);
 
 -- Only authenticated internal users/admins can read or update messages
+DROP POLICY IF EXISTS "Allow authenticated reads for contact messages" ON contact_messages;
 CREATE POLICY "Allow authenticated reads for contact messages" 
 ON contact_messages 
 FOR SELECT 
 USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Allow authenticated updates for contact messages" ON contact_messages;
 CREATE POLICY "Allow authenticated updates for contact messages" 
 ON contact_messages 
 FOR UPDATE 
@@ -146,19 +152,20 @@ CREATE TRIGGER update_profiles_modtime
 -- RLS Policies
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Users can insert their own profile upon signup
-CREATE POLICY "Users can insert their own profile." 
-ON profiles 
-FOR INSERT 
-WITH CHECK (auth.uid() = id);
+-- WARNING: Account creation is locked down. 
+-- Do NOT allow public signups. Ensure "Allow New Users To Sign Up" is disabled in Supabase Auth Settings.
+-- Only database admins (or internal service roles) should insert into profiles.
+-- The previous INSERT policy for users has been removed to enforce this at the database level.
 
 -- Users can update their own profile
+DROP POLICY IF EXISTS "Users can update their own profile." ON profiles;
 CREATE POLICY "Users can update their own profile." 
 ON profiles 
 FOR UPDATE 
 USING (auth.uid() = id);
 
 -- Users can view their own profile, and authenticated admins can view all
+DROP POLICY IF EXISTS "Users can view their own profile." ON profiles;
 CREATE POLICY "Users can view their own profile." 
 ON profiles 
 FOR SELECT 
@@ -177,23 +184,27 @@ ON CONFLICT (id) DO UPDATE SET public = false;
 -- Storage Policies for 'carrier-documents'
 
 -- 1. Allow anyone to upload documents into the bucket
+DROP POLICY IF EXISTS "Allow public uploads to carrier-documents" ON storage.objects;
 CREATE POLICY "Allow public uploads to carrier-documents" 
 ON storage.objects 
 FOR INSERT 
 WITH CHECK (bucket_id = 'carrier-documents');
 
 -- 2. Only authenticated users (admins/internal) can view/download the documents
+DROP POLICY IF EXISTS "Allow authenticated reads from carrier-documents" ON storage.objects;
 CREATE POLICY "Allow authenticated reads from carrier-documents" 
 ON storage.objects 
 FOR SELECT 
 USING (bucket_id = 'carrier-documents' AND auth.role() = 'authenticated');
 
 -- 3. Only authenticated users can delete or update documents
+DROP POLICY IF EXISTS "Allow authenticated modifications to carrier-documents" ON storage.objects;
 CREATE POLICY "Allow authenticated modifications to carrier-documents" 
 ON storage.objects 
 FOR UPDATE 
 USING (bucket_id = 'carrier-documents' AND auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Allow authenticated deletions from carrier-documents" ON storage.objects;
 CREATE POLICY "Allow authenticated deletions from carrier-documents" 
 ON storage.objects 
 FOR DELETE 

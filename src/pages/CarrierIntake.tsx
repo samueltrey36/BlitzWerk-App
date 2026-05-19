@@ -200,7 +200,7 @@ export default function CarrierIntake() {
                 <input required type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-surface-lighter border border-slate-600 rounded-none px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all font-sans" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1 uppercase tracking-wider">Years Operating</label>
                   <input type="number" name="yearsOperating" min="0" value={formData.yearsOperating} onChange={handleInputChange} className="w-full bg-surface-lighter border border-slate-600 rounded-none px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all font-sans" />
@@ -216,7 +216,7 @@ export default function CarrierIntake() {
             <div className="space-y-5">
               <h3 className="text-xl font-industrial font-bold text-white mb-4 border-b border-slate-700 pb-2 uppercase tracking-wide">Operating Profile</h3>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1 uppercase tracking-wider">MC Number *</label>
                   <input required type="text" name="mcNumber" value={formData.mcNumber} onChange={handleInputChange} className="w-full bg-surface-lighter border border-slate-600 rounded-none px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all font-sans" />
@@ -227,7 +227,7 @@ export default function CarrierIntake() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1 uppercase tracking-wider">Equipment *</label>
                   <select required name="equipmentType" value={formData.equipmentType} onChange={handleInputChange} className="w-full bg-surface-lighter border border-slate-600 rounded-none px-4 py-3 text-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all appearance-none font-sans">

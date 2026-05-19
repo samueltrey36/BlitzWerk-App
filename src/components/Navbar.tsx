@@ -23,8 +23,9 @@ export default function Navbar() {
             <Phone className="w-4 h-4 text-brand" />
             832-657-4825
           </a>
-          <Link to="/carrier-intake" className="bg-surface-light hover:bg-brand-dark text-white px-6 py-3 font-industrial font-bold uppercase tracking-wider transition-colors border-2 border-brand text-sm shadow-[0_4px_10px_rgba(0,0,0,0.3)] flex items-center justify-center">
-            Submit Carrier Packet
+          <Link to="/carrier-intake" className="bg-surface-light hover:bg-brand-dark text-white px-3 py-2 sm:px-6 sm:py-3 font-industrial font-bold uppercase tracking-wider transition-colors border-2 border-brand text-xs sm:text-sm shadow-[0_4px_10px_rgba(0,0,0,0.3)] flex items-center justify-center text-center">
+            <span className="hidden sm:inline">Submit Carrier Packet</span>
+            <span className="sm:hidden">Join Network</span>
           </Link>
           <Link to="/login" className="text-[10px] font-industrial font-bold uppercase tracking-widest text-slate-500 hover:text-brand transition-colors ml-2">
             Login

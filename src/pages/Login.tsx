@@ -72,7 +72,7 @@ export default function Login() {
 
         // Route to the new admin dashboard
         let targetRoute = '/admin';
-        
+
         const flowReturnTo = sessionStorage.getItem('flowReturnTo');
         if (flowReturnTo) {
           targetRoute = flowReturnTo;
@@ -91,7 +91,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-center"
@@ -100,7 +100,7 @@ export default function Login() {
             <Zap className="w-7 h-7 text-white fill-white" />
           </div>
         </motion.div>
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -108,7 +108,7 @@ export default function Login() {
         >
           Welcome back
         </motion.h2>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -121,7 +121,7 @@ export default function Login() {
         </motion.p>
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
